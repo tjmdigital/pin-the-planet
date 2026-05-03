@@ -25,7 +25,7 @@ function loadCountryFeatures() {
   return countryFeaturesCache;
 }
 
-const API_VERSION = "v67-question-api";
+const API_VERSION = "v67-question-api-fix";
 
 const UK_US_COUNTRIES = new Set(["United Kingdom", "United States"]);
 const FAMILIAR_COUNTRIES = new Set([
@@ -141,6 +141,7 @@ function buildQuestions(count, options, debug) {
   debug.poolSize = cities.length;
   debug.uniqueCountries = uniqueCountries;
   debug.liveWikidataAttempted = false;
+  debug.geometryIncluded = false;
   debug.mode = difficulty;
   debug.requestedCount = target;
 
@@ -156,22 +157,25 @@ function sourceFor(difficulty) {
 function buildCountryQuestions(count, debug) {
   const target = clamp(Number(count || 10), 1, 25);
   const features = loadCountryFeatures();
-  debug.pool = "country";
-  debug.poolSize = features.length;
-  debug.uniqueCountries = features.length;
-  debug.liveWikidataAttempted = false;
-  debug.mode = "country";
-  debug.requestedCount = target;
-
   const playable = features.filter(f => {
     const lat = f.properties.labelLat;
     const lng = f.properties.labelLng;
-    return Number.isFinite(lat) && Number.isFinite(lng);
+    return Number.isFinite(lat) && Number.isFinite(lng) && f.geometry;
   });
+
+  debug.pool = "country";
+  debug.poolSize = playable.length;
+  debug.countryCount = playable.length;
+  debug.uniqueCountries = playable.length;
+  debug.liveWikidataAttempted = false;
+  debug.mode = "country";
+  debug.requestedCount = target;
+  debug.geometryIncluded = true;
+
   const shuffled = shuffleCopy(playable);
   const picks = shuffled.slice(0, target);
 
-  // If we somehow have fewer than count, just allow repeats so we never throw.
+  // If we somehow have fewer than count, allow repeats so we never throw.
   while (picks.length < target && shuffled.length > 0) {
     picks.push(shuffled[picks.length % shuffled.length]);
   }

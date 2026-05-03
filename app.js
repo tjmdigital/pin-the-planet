@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v67-country-mode";
+const PTP_APP_VERSION = "v67-country-mode-fix";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -616,8 +616,8 @@ function countryWorstSpotlight(row) {
 }
 
 function verdictForRow(row, question) {
+  if (question?.type === "country") return countryVerdictCopy(row || { hasGuess: false });
   if (!row?.hasGuess) return verdictForDistance(Infinity);
-  if (question?.type === "country") return countryVerdictCopy(row);
   return verdictForDistance(row.distance);
 }
 
