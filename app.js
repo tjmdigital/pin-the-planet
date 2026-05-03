@@ -32,9 +32,34 @@ if (isFirebaseConfigured) {
   app = initializeApp(firebaseConfig);
   db = getDatabase(app);
   document.getElementById("connectionStatus").textContent = "Online sync ready";
+  probeFirebaseHealth();
 } else {
   document.getElementById("connectionStatus").textContent = "Firebase needed";
   document.getElementById("firebaseWarning").classList.remove("hidden");
+}
+
+// Non-blocking probe: tries a tiny write+remove to verify the database rules
+// actually allow the reads/writes the game needs. If the rules are misconfigured
+// the app would otherwise silently fail to sync rooms - this surfaces it.
+async function probeFirebaseHealth() {
+  if (!db) return;
+  // Probe under /games so the test exercises the same path the app actually uses.
+  const probePath = `games/__probe__/${Math.random().toString(36).slice(2, 10)}_${Date.now()}`;
+  try {
+    await set(ref(db, probePath), { ts: Date.now() });
+    await remove(ref(db, probePath));
+  } catch (error) {
+    const status = document.getElementById("connectionStatus");
+    if (status) status.textContent = "Sync limited";
+    const warning = document.getElementById("firebaseWarning");
+    if (warning) {
+      const heading = warning.querySelector("strong");
+      const detail = warning.querySelector("p");
+      if (heading) heading.textContent = "Realtime sync is not working.";
+      if (detail) detail.textContent = "Room play may not work. Check Firebase rules or your network, then refresh.";
+      warning.classList.remove("hidden");
+    }
+  }
 }
 
 const $ = (id) => document.getElementById(id);
@@ -61,7 +86,8 @@ const state = {
   prefetchPromise: null,
   prefetchKey: null,
   baseLayer: null,
-  baseMapMode: null
+  baseMapMode: null,
+  gameUnsubscribe: null
 };
 
 function getTrafficSource() {
@@ -292,13 +318,21 @@ function escapeHtml(input) {
     .replaceAll("'", "&#039;");
 }
 
+// Same escaping rules as escapeHtml (covers quotes too) - aliased for readability
+// at attribute boundaries.
+const escapeAttr = escapeHtml;
+
+function safeAvatar(player) {
+  return escapeHtml(player?.avatar || "🌍");
+}
+
 function displayPlayerName(player) {
   if (isSoloGame?.() && player?.id === state.playerId) return "You";
   return player?.name || "Player";
 }
 
 function playerLabel(player) {
-  return `${player.avatar || "🌍"} ${escapeHtml(displayPlayerName(player))}`;
+  return `${safeAvatar(player)} ${escapeHtml(displayPlayerName(player))}`;
 }
 
 function cleanLocationDisplayName(name = "") {
@@ -920,8 +954,9 @@ function enterGame(code, playerId, playerName, isHost) {
 }
 
 function subscribeToGame() {
+  unsubscribeFromGame();
   const gameRef = ref(db, `games/${state.gameCode}`);
-  onValue(gameRef, (snap) => {
+  state.gameUnsubscribe = onValue(gameRef, (snap) => {
     if (!snap.exists()) {
       toast("Room was removed");
       leaveGame(false);
@@ -930,6 +965,13 @@ function subscribeToGame() {
     state.game = snap.val();
     renderGame();
   });
+}
+
+function unsubscribeFromGame() {
+  if (typeof state.gameUnsubscribe === "function") {
+    try { state.gameUnsubscribe(); } catch (error) { /* ignore */ }
+  }
+  state.gameUnsubscribe = null;
 }
 
 function currentQuestion() {
@@ -988,8 +1030,20 @@ function dedupePlayersForDisplay(players) {
   return output;
 }
 
-function onlinePlayersArray() {
-  return dedupePlayersForDisplay(playersArray()).filter(player => player.online !== false);
+// Players to include in a new round's eligibility set. Online players are always
+// included; an offline player is included only if they were active very recently,
+// which protects against a brief disconnect/reconnect flicker right at round
+// start without dragging in stale ghosts from earlier sessions.
+const ROUND_ELIGIBILITY_GRACE_MS = 60 * 1000;
+
+function activeRoundPlayers() {
+  const deduped = dedupePlayersForDisplay(playersArray());
+  const now = Date.now();
+  return deduped.filter(player => {
+    if (player.online !== false) return true;
+    const lastActive = Number(player.rejoinedAt) || Number(player.joinedAt) || 0;
+    return lastActive > 0 && now - lastActive < ROUND_ELIGIBILITY_GRACE_MS;
+  });
 }
 
 function currentHostPlayer() {
@@ -1292,7 +1346,7 @@ function renderPlayers() {
         <strong>${playerLabel(player)} ${player.isHost ? "<span class='tiny muted'>(host)</span>" : ""}</strong>
         <span class="small muted">${player.online !== false ? "Online" : "Offline - ignored next round"}</span>
       </div>
-      <div class="score">${player.total || 0}</div>
+      <div class="score">${Number(player.total) || 0}</div>
     </div>
   `).join("");
   setHtmlIfChanged($("playersList"), html, "playersList");
@@ -1526,7 +1580,7 @@ function renderRoundSpotlight() {
     <div class="round-spotlight-card best ${isBestYou ? "is-you" : ""}">
       <div class="round-spotlight-kicker">🏆 Best guess ${isBestYou ? '<span class="spotlight-you-pill">You</span>' : ""}</div>
       <div class="round-spotlight-head">
-        <div class="round-spotlight-avatar">${best.player.avatar || "🌍"}</div>
+        <div class="round-spotlight-avatar">${safeAvatar(best.player)}</div>
         <div>
           <div class="round-spotlight-name">${escapeHtml(best.player.name)}</div>
           <div class="round-spotlight-meta">${Math.round(best.distance).toLocaleString()} km away</div>
@@ -1543,7 +1597,7 @@ function renderRoundSpotlight() {
       <div class="round-spotlight-card worst ${isWorstYou ? "is-you" : ""}">
         <div class="round-spotlight-kicker">🥄 Roast of the round ${isWorstYou ? '<span class="spotlight-you-pill">You</span>' : ""}</div>
         <div class="round-spotlight-head">
-          <div class="round-spotlight-avatar">${worst.player.avatar || "🌍"}</div>
+          <div class="round-spotlight-avatar">${safeAvatar(worst.player)}</div>
           <div>
             <div class="round-spotlight-name">${escapeHtml(worst.player.name)}</div>
             <div class="round-spotlight-meta">${Math.round(worst.distance).toLocaleString()} km away</div>
@@ -1608,7 +1662,7 @@ function renderFinalMapOverlay() {
   const showPubPoints = state.game.scoringMode === "pub";
   const isSolo = isSoloGame();
 
-  const soloScore = byTotal[0]?.total || 0;
+  const soloScore = Number(byTotal[0]?.total) || 0;
   const soloPercent = scorePercent(soloScore, state.game);
   const soloBestResult = isSolo ? recordSoloResultIfNeeded() : null;
   const soloBest = isSolo ? getSoloBest(state.game) : null;
@@ -1625,7 +1679,7 @@ function renderFinalMapOverlay() {
       </div>
       <div class="final-board-list final-board-list-solo">
         <div class="final-board-row champion solo">
-          <div class="final-place">${byTotal[0]?.avatar || "🌍"}</div>
+          <div class="final-place">${safeAvatar(byTotal[0])}</div>
           <div>
             <div class="final-player-name">${playerLabel(byTotal[0])}</div>
             <div class="final-player-meta">${isNewBest ? "New best for this setup" : "Your final score for this run"}</div>
@@ -1673,8 +1727,8 @@ function renderFinalMapOverlay() {
                 <div class="final-player-meta">${placeLabel}${showPubPoints ? ` · ${pubQuizPointsForIndex(index)} pub points` : ""}</div>
               </div>
               <div class="final-total-wrap">
-                <div class="final-total">${player.total || 0}</div>
-                <div class="final-round-add">${isPracticeRound() ? "practice only" : `+${roundPointsByPlayer[player.id] || 0} this round`}</div>
+                <div class="final-total">${Number(player.total) || 0}</div>
+                <div class="final-round-add">${isPracticeRound() ? "practice only" : `+${Number(roundPointsByPlayer[player.id]) || 0} this round`}</div>
               </div>
             </div>
           `;
@@ -1758,9 +1812,9 @@ function renderLeaderboard() {
         <div class="leader-row ${isSolo ? "solo-row" : ""}">
           <div>
             <strong>${isSolo ? playerLabel(player) : `${index + 1}. ${playerLabel(player)}`}</strong>
-            ${state.game.revealed ? `<span class="small round-score">${isPracticeRound() ? "practice only" : `+${roundPointsByPlayer[player.id] || 0} this round`}</span>` : `<span class="small muted">${isSolo ? "Round live" : "Waiting for reveal"}</span>`}
+            ${state.game.revealed ? `<span class="small round-score">${isPracticeRound() ? "practice only" : `+${Number(roundPointsByPlayer[player.id]) || 0} this round`}</span>` : `<span class="small muted">${isSolo ? "Round live" : "Waiting for reveal"}</span>`}
           </div>
-          <div class="score">${player.total || 0}</div>
+          <div class="score">${Number(player.total) || 0}</div>
         </div>
       `).join("")}
     </div>
@@ -1800,7 +1854,7 @@ function playerEmojiIcon(row, rank, worstId) {
     className: "player-emoji-marker",
     html: `
       <div class="player-emoji-chip">
-        <div class="${classes.join(" ")}" title="${escapeHtml(row.player.name)}">${row.player.avatar || "🌍"}</div>
+        <div class="${classes.join(" ")}" title="${escapeAttr(row.player.name)}">${safeAvatar(row.player)}</div>
         <div class="player-emoji-name ${isBest ? "best" : ""} ${isWorst ? "worst" : ""}" title="${escapeHtml(row.player.name)}">${safeName}</div>
       </div>
     `,
@@ -1844,7 +1898,7 @@ function renderPersonalResult() {
   card.classList.remove("hidden");
   const html = `
     <div class="personal-result-inner">
-      <div class="personal-result-emoji">${row.player.avatar || "🌍"}</div>
+      <div class="personal-result-emoji">${safeAvatar(row.player)}</div>
       <div>
         <div class="personal-result-title">${isSoloGame() ? "Your round score" : "Your round result"}</div>
         <div class="personal-result-meta">${row.hasGuess ? `${Math.round(row.distance).toLocaleString()} km away` : "No guess submitted"}</div>
@@ -1918,7 +1972,7 @@ function renderMapMarkers() {
 async function startRound() {
   const durationMs = (state.game?.roundDurationSeconds || ROUND_DURATION_SECONDS) * 1000;
   const now = Date.now();
-  const roundPlayerIds = Object.fromEntries(onlinePlayersArray().map(player => [player.id, true]));
+  const roundPlayerIds = Object.fromEntries(activeRoundPlayers().map(player => [player.id, true]));
 
   await remove(ref(db, `games/${state.gameCode}/guesses/${state.game.currentRound}`));
   await update(ref(db, `games/${state.gameCode}`), {
@@ -1962,7 +2016,7 @@ async function revealRound() {
     const distance = guess ? haversineKm(guess.lat, guess.lng, question.lat, question.lng) : Infinity;
     const points = guess ? pointsForDistance(distance, true) : 0;
     if (!isPracticeRound()) {
-      playerUpdates[`players/${player.id}/total`] = (player.total || 0) + points;
+      playerUpdates[`players/${player.id}/total`] = (Number(player.total) || 0) + points;
     }
   });
 
@@ -1983,7 +2037,7 @@ async function nextRound() {
 
   const durationMs = (state.game.roundDurationSeconds || ROUND_DURATION_SECONDS) * 1000;
   const now = Date.now();
-  const roundPlayerIds = Object.fromEntries(onlinePlayersArray().map(player => [player.id, true]));
+  const roundPlayerIds = Object.fromEntries(activeRoundPlayers().map(player => [player.id, true]));
 
   await update(ref(db, `games/${state.gameCode}`), {
     currentRound: next,
@@ -2048,6 +2102,8 @@ function leaveGame(removeHostRoom = true) {
   const playerId = state.playerId;
   const isHost = state.isHost;
   localStorage.removeItem("worldPinQuizSession");
+
+  unsubscribeFromGame();
 
   if (db && code && playerId) {
     if (isHost && removeHostRoom) remove(ref(db, `games/${code}`));
@@ -2132,8 +2188,8 @@ function soloSetupKey(game = state.game) {
 function soloSetupLabel(game = state.game) {
   if (!game) return "this setup";
 
-  const rounds = game.roundsRequested || scoredRoundTotal() || game.questions?.length || 10;
-  const difficulty = game.cityDifficulty || "mixed";
+  const rounds = Number(game.roundsRequested) || scoredRoundTotal() || Number(game.questions?.length) || 10;
+  const difficulty = ["familiar", "mixed", "chaos"].includes(game.cityDifficulty) ? game.cityDifficulty : "mixed";
   const map = game.mapMode === "hardcore"
     ? "hardcore"
     : game.mapMode === "outlines"
@@ -2502,17 +2558,7 @@ document.addEventListener("click", (event) => {
 });
 
 
-/* v42 mobile gesture hardening */
-["gesturestart", "gesturechange", "gestureend"].forEach((eventName) => {
-  window.addEventListener(eventName, (event) => {
-    if (window.matchMedia("(max-width: 860px)").matches && document.body.classList.contains("in-game")) {
-      event.preventDefault();
-    }
-  }, { passive: false });
-});
-
-
-/* v45 mobile gesture hardening */
+/* mobile gesture hardening - prevent pinch-zoom while the map is in play */
 ["gesturestart", "gesturechange", "gestureend"].forEach((eventName) => {
   window.addEventListener(eventName, (event) => {
     if (window.matchMedia("(max-width: 860px)").matches && document.body.classList.contains("in-game")) {
