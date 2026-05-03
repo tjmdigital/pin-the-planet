@@ -25,7 +25,7 @@ function loadCountryFeatures() {
   return countryFeaturesCache;
 }
 
-const API_VERSION = "v67-question-api-fix";
+const API_VERSION = "v68-question-api";
 
 const UK_US_COUNTRIES = new Set(["United Kingdom", "United States"]);
 const FAMILIAR_COUNTRIES = new Set([
@@ -137,7 +137,10 @@ function buildQuestions(count, options, debug) {
   const { cities, poolName, seedFamiliar } = poolForDifficulty(difficulty);
   const uniqueCountries = new Set(cities.map(c => c.country)).size;
 
-  debug.pool = poolName;
+  debug.questionType = "city";
+  debug.resolvedDifficulty = difficulty;
+  debug.pool = sourceFor(difficulty);
+  debug.poolName = poolName;
   debug.poolSize = cities.length;
   debug.uniqueCountries = uniqueCountries;
   debug.liveWikidataAttempted = false;
@@ -163,7 +166,10 @@ function buildCountryQuestions(count, debug) {
     return Number.isFinite(lat) && Number.isFinite(lng) && f.geometry;
   });
 
-  debug.pool = "country";
+  debug.questionType = "country";
+  debug.resolvedDifficulty = "country";
+  debug.pool = "country-pool";
+  debug.poolName = "country";
   debug.poolSize = playable.length;
   debug.countryCount = playable.length;
   debug.uniqueCountries = playable.length;
@@ -214,12 +220,14 @@ function makeQuestionPayload(req) {
 
   if (questionType === "country") {
     const questions = buildCountryQuestions(count, debug);
+    debug.requestedCityDifficulty = difficulty;
     return {
       apiVersion: API_VERSION,
       generatedAt: new Date().toISOString(),
       count: questions.length,
-      difficulty,
       questionType: "country",
+      difficulty: "country",
+      mode: "country",
       source: "country-pool",
       debug,
       questions
@@ -231,8 +239,9 @@ function makeQuestionPayload(req) {
     apiVersion: API_VERSION,
     generatedAt: new Date().toISOString(),
     count: questions.length,
-    difficulty,
     questionType: "city",
+    difficulty,
+    mode: "city",
     source: sourceFor(difficulty),
     debug,
     questions
@@ -256,13 +265,19 @@ module.exports = async function handler(req, res) {
         apiVersion: API_VERSION,
         generatedAt: new Date().toISOString(),
         count: questions.length,
+        questionType: "city",
         difficulty,
+        mode: "city",
         source: "emergency-familiar-pool",
         debug: {
-          pool: "familiar",
+          questionType: "city",
+          resolvedDifficulty: difficulty,
+          pool: "emergency-familiar-pool",
+          poolName: "familiar",
           poolSize: fallbackCities.length,
           uniqueCountries: new Set(fallbackCities.map(c => c.country)).size,
           liveWikidataAttempted: false,
+          geometryIncluded: false,
           emergencyFallback: true,
           error: error?.message || String(error)
         },
