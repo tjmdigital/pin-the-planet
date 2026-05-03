@@ -5,7 +5,7 @@
 // - chaos: Wikidata-led with curated fallback
 // Normal room creation should never 500 for city questions.
 
-const API_VERSION = "v64-question-api";
+const API_VERSION = "v65-question-api";
 const CITY_LOOKUP_ENDPOINT = "https://query.wikidata.org/sparql";
 
 const FAMILIAR_COUNTRY_QIDS = [
@@ -145,6 +145,109 @@ const FAMOUS_CITY_SEEDS = FAMOUS_CITY_SEEDS_RAW.map(([displayName, country, lat,
   curated: true
 }));
 
+// Server-side only chaos fallback pool.
+// Used when Wikidata times out or returns too few candidates for chaos mode.
+// Real cities/places with approximate city-centre coordinates, intentionally
+// harder than the familiar pool: remote capitals, obscure island capitals,
+// and extreme geography locations.
+const CHAOS_CITY_SEEDS_RAW = [
+  ["Nukus","Uzbekistan",42.4531,59.6103],
+  ["Yakutsk","Russia",62.0355,129.6755],
+  ["Iqaluit","Canada",63.7467,-68.5170],
+  ["Longyearbyen","Norway",78.2232,15.6267],
+  ["Tórshavn","Faroe Islands",62.0079,-6.7900],
+  ["Stanley","Falkland Islands",-51.6938,-57.8517],
+  ["Dili","Timor-Leste",-8.5569,125.5603],
+  ["Paramaribo","Suriname",5.8520,-55.2038],
+  ["Georgetown","Guyana",6.8013,-58.1551],
+  ["Asmara","Eritrea",15.3229,38.9251],
+  ["Djibouti","Djibouti",11.8251,42.5903],
+  ["Bissau","Guinea-Bissau",11.8636,-15.5977],
+  ["Praia","Cape Verde",14.9330,-23.5133],
+  ["Banjul","Gambia",13.4549,-16.5790],
+  ["Conakry","Guinea",9.6412,-13.5784],
+  ["Freetown","Sierra Leone",8.4657,-13.2317],
+  ["Monrovia","Liberia",6.3007,-10.7969],
+  ["Timbuktu","Mali",16.7666,-3.0026],
+  ["Agadez","Niger",16.9742,7.9909],
+  ["N'Djamena","Chad",12.1348,15.0557],
+  ["Bangui","Central African Republic",4.3947,18.5582],
+  ["Malabo","Equatorial Guinea",3.7523,8.7742],
+  ["São Tomé","São Tomé and Príncipe",0.3302,6.7333],
+  ["Moroni","Comoros",-11.7172,43.2473],
+  ["Antsiranana","Madagascar",-12.2787,49.2917],
+  ["Windhoek","Namibia",-22.5609,17.0658],
+  ["Gaborone","Botswana",-24.6282,25.9231],
+  ["Maseru","Lesotho",-29.3151,27.4869],
+  ["Mbabane","Eswatini",-26.3054,31.1367],
+  ["Juba","South Sudan",4.8517,31.5825],
+  ["Hargeisa","Somaliland",9.5600,44.0650],
+  ["Lhasa","China",29.6500,91.1000],
+  ["Urumqi","China",43.8256,87.6168],
+  ["Kashgar","China",39.4704,75.9898],
+  ["Thimphu","Bhutan",27.4716,89.6386],
+  ["Paro","Bhutan",27.4287,89.4164],
+  ["Vientiane","Laos",17.9757,102.6331],
+  ["Naypyidaw","Myanmar",19.7633,96.0785],
+  ["Bandar Seri Begawan","Brunei",4.9031,114.9398],
+  ["Dushanbe","Tajikistan",38.5598,68.7870],
+  ["Bishkek","Kyrgyzstan",42.8746,74.5698],
+  ["Ashgabat","Turkmenistan",37.9601,58.3261],
+  ["Ulaanbaatar","Mongolia",47.8864,106.9057],
+  ["Astana","Kazakhstan",51.1605,71.4704],
+  ["Almaty","Kazakhstan",43.2389,76.8897],
+  ["Malé","Maldives",4.1755,73.5093],
+  ["Port Moresby","Papua New Guinea",-9.4438,147.1803],
+  ["Honiara","Solomon Islands",-9.4456,159.9729],
+  ["Suva","Fiji",-18.1416,178.4419],
+  ["Apia","Samoa",-13.8506,-171.7513],
+  ["Nukuʻalofa","Tonga",-21.1394,-175.2049],
+  ["Port Vila","Vanuatu",-17.7404,168.3220],
+  ["Palikir","Micronesia",6.9248,158.1611],
+  ["Majuro","Marshall Islands",7.0894,171.3803],
+  ["Tarawa","Kiribati",1.3382,172.9759],
+  ["Funafuti","Tuvalu",-8.5243,179.1942],
+  ["Nuuk","Greenland",64.1836,-51.7214],
+  ["Kangerlussuaq","Greenland",67.0067,-50.6892],
+  ["Ushuaia","Argentina",-54.8019,-68.3030],
+  ["Punta Arenas","Chile",-53.1638,-70.9171],
+  ["Hanga Roa","Chile",-27.1500,-109.4333],
+  ["Potosí","Bolivia",-19.5836,-65.7531],
+  ["Sucre","Bolivia",-19.0196,-65.2619],
+  ["Iquitos","Peru",-3.7437,-73.2516],
+  ["Leticia","Colombia",-4.2150,-69.9406],
+  ["Cayenne","French Guiana",4.9224,-52.3135],
+  ["Oranjestad","Aruba",12.5211,-70.0353],
+  ["Willemstad","Curaçao",12.1098,-68.9335],
+  ["Road Town","British Virgin Islands",18.4267,-64.6231],
+  ["Basseterre","Saint Kitts and Nevis",17.2955,-62.7261],
+  ["Castries","Saint Lucia",14.0101,-60.9874],
+  ["Roseau","Dominica",15.3092,-61.3794],
+  ["St. George's","Grenada",12.0561,-61.7488],
+  ["Kingstown","Saint Vincent and the Grenadines",13.1567,-61.2248],
+  ["Belmopan","Belize",17.2510,-88.7590],
+  ["Tegucigalpa","Honduras",14.0723,-87.1921],
+  ["Managua","Nicaragua",12.1149,-86.2362],
+  ["Saint-Pierre","Saint Pierre and Miquelon",46.7811,-56.1714],
+  ["Hamilton","Bermuda",32.2949,-64.7822],
+  ["Jamestown","Saint Helena",-15.9387,-5.7177],
+  ["Avarua","Cook Islands",-21.2074,-159.7746],
+  ["Adamstown","Pitcairn Islands",-25.0664,-130.0995],
+  ["Alofi","Niue",-19.0556,-169.9171],
+  ["Mata-Utu","Wallis and Futuna",-13.2825,-176.1745]
+];
+
+const CHAOS_CITY_SEEDS = CHAOS_CITY_SEEDS_RAW.map(([displayName, country, lat, lng]) => ({
+  name: `${displayName}, ${country}`,
+  displayName,
+  sourceName: displayName,
+  country,
+  lat,
+  lng,
+  curated: true,
+  chaos: true
+}));
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
@@ -227,6 +330,41 @@ function pickOneCityPerCountry(cities, count, options = {}) {
 function curatedQuestions(count, options = {}) {
   const difficulty = String(options.cityDifficulty || "mixed").toLowerCase();
   return pickOneCityPerCountry(FAMOUS_CITY_SEEDS, count, { seedFamiliar: difficulty !== "chaos" });
+}
+
+function chaosFallbackQuestions(count, options = {}) {
+  const target = clamp(Number(count || 10), 1, 25);
+  const pool = uniqueCityPool(CHAOS_CITY_SEEDS);
+  const groups = groupCitiesByCountry(pool);
+  const chosen = [];
+  const usedKeys = new Set();
+
+  const keyOf = (city) => `${city.name}|${Number(city.lat).toFixed(3)}|${Number(city.lng).toFixed(3)}`;
+
+  for (const country of shuffleCopy([...groups.keys()])) {
+    if (chosen.length >= target) break;
+    const pick = shuffleCopy(groups.get(country))[0];
+    if (!pick) continue;
+    chosen.push(pick);
+    usedKeys.add(keyOf(pick));
+  }
+
+  if (chosen.length < target) {
+    for (const city of shuffleCopy(pool)) {
+      if (chosen.length >= target) break;
+      const key = keyOf(city);
+      if (usedKeys.has(key)) continue;
+      chosen.push(city);
+      usedKeys.add(key);
+    }
+  }
+
+  // Last-resort: if pool is somehow tiny, allow repeats so we never throw.
+  while (chosen.length < target && pool.length > 0) {
+    chosen.push(shuffleCopy(pool)[0]);
+  }
+
+  return chosen.slice(0, target);
 }
 
 function parseWikidataPoint(pointValue) {
@@ -371,15 +509,16 @@ async function buildQuestions(count, options, debug = {}) {
   }
 
   const candidates = await getWikidataCandidates(target + 30, { ...options, cityDifficulty: "chaos" }, debug);
+  debug.chaosPoolSize = CHAOS_CITY_SEEDS.length;
   if (candidates.length >= target) {
     const questions = pickOneCityPerCountry(candidates, target, { seedFamiliar: false });
     debug.wikidataUsed = questions.length;
     return questions;
   }
 
-  debug.curatedFallbackUsed = true;
+  debug.chaosFallbackUsed = true;
   debug.wikidataUsed = 0;
-  return curatedQuestions(target, { ...options, cityDifficulty: "chaos" });
+  return chaosFallbackQuestions(target, { ...options, cityDifficulty: "chaos" });
 }
 
 async function makeQuestionPayload(req) {
@@ -416,7 +555,7 @@ async function makeQuestionPayload(req) {
         ? "curated"
         : options.cityDifficulty === "mixed"
           ? (debug.wikidataUsed > 0 ? "curated-plus-wikidata" : "curated")
-          : (debug.wikidataUsed > 0 ? "wikidata" : "curated-fallback"),
+          : (debug.wikidataUsed > 0 ? "wikidata" : "chaos-fallback"),
     debug,
     questions
   };
