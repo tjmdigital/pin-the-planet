@@ -2147,8 +2147,21 @@ body.join-link-mode #homeScreen .grid > section:nth-child(2) {
 .pack-card.active { border-color: rgba(143, 212, 255, 0.42); background: rgba(143, 212, 255, 0.1); }
 .pack-card:disabled { opacity: 0.48; cursor: not-allowed; }
 .pack-card em { margin-left: auto; font-size: 9px; font-style: normal; text-transform: uppercase; color: var(--warn); }
-.join-invite { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-.join-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #c6a6ff); }
+.join-invite { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.join-invite > div:not(.join-icon) { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.join-invite .tiny.muted { margin: 0 0 4px; line-height: 1.1; }
+.join-invite h2 { margin: 0; line-height: 1.05; }
+.join-icon {
+  width: 64px;
+  height: 64px;
+  font-size: 28px;
+  flex: 0 0 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent), #c6a6ff);
+  box-shadow: 0 8px 24px rgba(124, 134, 255, 0.25);
+}
 body.join-link-mode #homeScreen .grid, body.join-link-mode .landing-shell { grid-template-columns: minmax(0, 560px); justify-content: center; }
 body.join-link-mode #hostSetupPanel { display: none; }
 body.join-link-mode #joinPanel { max-width: 560px; }

@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v76-toast-polish";
+const PTP_APP_VERSION = "v77-join-card-alignment";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
