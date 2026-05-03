@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v67-country-mode-fix";
+const PTP_APP_VERSION = "v68-solo-reposition-country-polish";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1177,8 +1177,16 @@ function initMap() {
 
   state.map.on("click", async (event) => {
     if (!state.game) return;
-    if (!state.game.acceptingGuesses || state.game.revealed || !state.game.started) {
-      toast("Wait for the host to start the round");
+    const solo = isSoloGame();
+    if (!state.game.started || state.game.revealed) {
+      toast(solo ? "Start the round before placing a pin" : "Wait for the host to start the round");
+      return;
+    }
+    // Solo can keep tapping to reposition until the timer expires or the
+    // player hits Score round. Multiplayer respects acceptingGuesses, which
+    // gets flipped off when all players are in or time is up.
+    if (!solo && !state.game.acceptingGuesses) {
+      toast("Round is closed - waiting for the answer reveal");
       return;
     }
     if (isTimerExpired()) {
@@ -1211,7 +1219,7 @@ async function submitGuess() {
     submittedAt: serverTimestamp()
   });
   trackEvent("round_guess_submitted", { code: state.gameCode, round, time_to_guess: typeof timeToGuess !== "undefined" ? timeToGuess : null, timer_setting: state.game?.roundDurationSeconds });
-  toast("Guess submitted");
+  toast(isSoloGame() ? "Pin placed - tap to move it" : "Guess submitted");
 }
 
 async function createGame(isSinglePlayer = false) {
@@ -1523,7 +1531,10 @@ async function maybeAutoCloseRound() {
   if (!state.isHost || !state.game?.started || !state.game.acceptingGuesses || state.game.revealed) return;
 
   const left = secondsLeft();
-  const shouldCloseForAllGuessed = allPlayersHaveGuessed();
+  // In solo mode, never auto-close just because the one player has a pin -
+  // the player must be able to keep repositioning until time runs out or
+  // they hit Score round. Multiplayer keeps the all-guessed close.
+  const shouldCloseForAllGuessed = !isSoloGame() && allPlayersHaveGuessed();
   const shouldCloseForTime = left === 0 || hasRoundTimerEnded();
 
   if (!shouldCloseForAllGuessed && !shouldCloseForTime) return;
@@ -1644,8 +1655,10 @@ function renderGame() {
       : (state.isHost
         ? `Click the map to submit your own guess. The round closes automatically once everyone has guessed.${countryHint}`
         : `Click anywhere on the map to submit or change your guess.${countryHint}`);
-    if (allIn || roundClosedByAll) {
-      $("allGuessesBanner").textContent = isSolo ? "✅ Guess locked in - score when ready." : (state.isHost ? "✅ All guesses are in - reveal time." : "✅ All guesses are in - waiting for host.");
+    // In solo mode the player can keep repositioning, so the "everyone is
+    // in" banner would be misleading. Skip it entirely for solo.
+    if (!isSolo && (allIn || roundClosedByAll)) {
+      $("allGuessesBanner").textContent = state.isHost ? "✅ All guesses are in - reveal time." : "✅ All guesses are in - waiting for host.";
       $("allGuessesBanner").classList.remove("hidden");
     }
   }
@@ -1842,8 +1855,8 @@ function renderRoundStatus() {
 
   $("roundStatusPill").textContent = left === null ? "Live" : `${left}s left`;
   if (isSoloGame()) {
-    $("roundStatusMain").textContent = submitted ? "Guess locked in" : "Place your guess";
-    $("roundStatusSub").textContent = submitted ? "You can move your pin until time runs out." : "Drop one pin before the timer ends.";
+    $("roundStatusMain").textContent = submitted ? "Pin placed" : "Place your guess";
+    $("roundStatusSub").textContent = submitted ? "Tap elsewhere to move it before scoring." : "Drop a pin before the timer ends.";
   } else {
     $("roundStatusMain").textContent = `${submitted}/${total} guessed`;
     $("roundStatusSub").textContent = submitted === total
@@ -2774,6 +2787,30 @@ function finalSortedPlayers() {
   return playersArray().sort((a, b) => (b.total || 0) - (a.total || 0));
 }
 
+// Players safe to surface in copied/displayed final results: must have a
+// real name, and must either be online or have actually scored. This
+// drops stale duplicates that would otherwise read as "undefined: 0".
+function validPlayersForResults(players = playersArray()) {
+  const seen = new Set();
+  const cleaned = [];
+  const deduped = typeof dedupePlayersForDisplay === "function"
+    ? dedupePlayersForDisplay(players)
+    : players;
+  for (const player of deduped) {
+    if (!player) continue;
+    const name = String(player.name || "").trim();
+    if (!name) continue;
+    const total = Number(player.total || 0);
+    const isOnline = player.online !== false;
+    if (!isOnline && total <= 0) continue;
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    cleaned.push({ ...player, name });
+  }
+  return cleaned;
+}
+
 function ordinal(rank) {
   if (rank === 1) return "1st";
   if (rank === 2) return "2nd";
@@ -2782,7 +2819,7 @@ function ordinal(rank) {
 }
 
 function buildResultsText() {
-  const rows = typeof finalSortedPlayers === "function" ? finalSortedPlayers() : playersArray().sort((a, b) => (b.total || 0) - (a.total || 0));
+  const rows = validPlayersForResults().sort((a, b) => (b.total || 0) - (a.total || 0));
   const siteUrl = window.location.origin;
   const lines = ["🌍 Pin the Planet result"];
 
