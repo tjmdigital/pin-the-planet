@@ -7,11 +7,25 @@
 // used out-of-band to refresh the JSON pools in /data, but never live.
 // Normal city question requests must never 500.
 
+const fs = require("fs");
+const path = require("path");
+
 const familiarPool = require("../data/cities.familiar.json");
 const mixedExtrasPool = require("../data/cities.mixed.json");
 const chaosPool = require("../data/cities.chaos.json");
 
-const API_VERSION = "v66-question-api";
+// Country geometries are loaded lazily on first country-mode request so
+// city-only requests don't pay the JSON.parse cost.
+let countryFeaturesCache = null;
+function loadCountryFeatures() {
+  if (countryFeaturesCache) return countryFeaturesCache;
+  const file = path.join(__dirname, "..", "data", "countries.geojson");
+  const data = JSON.parse(fs.readFileSync(file, "utf8"));
+  countryFeaturesCache = (data.features || []).filter(f => f && f.properties && f.geometry);
+  return countryFeaturesCache;
+}
+
+const API_VERSION = "v67-question-api";
 
 const UK_US_COUNTRIES = new Set(["United Kingdom", "United States"]);
 const FAMILIAR_COUNTRIES = new Set([
@@ -139,31 +153,82 @@ function sourceFor(difficulty) {
   return "mixed-pool";
 }
 
+function buildCountryQuestions(count, debug) {
+  const target = clamp(Number(count || 10), 1, 25);
+  const features = loadCountryFeatures();
+  debug.pool = "country";
+  debug.poolSize = features.length;
+  debug.uniqueCountries = features.length;
+  debug.liveWikidataAttempted = false;
+  debug.mode = "country";
+  debug.requestedCount = target;
+
+  const playable = features.filter(f => {
+    const lat = f.properties.labelLat;
+    const lng = f.properties.labelLng;
+    return Number.isFinite(lat) && Number.isFinite(lng);
+  });
+  const shuffled = shuffleCopy(playable);
+  const picks = shuffled.slice(0, target);
+
+  // If we somehow have fewer than count, just allow repeats so we never throw.
+  while (picks.length < target && shuffled.length > 0) {
+    picks.push(shuffled[picks.length % shuffled.length]);
+  }
+
+  return picks.map((f) => ({
+    id: f.properties.iso || f.properties.iso3 || f.properties.name,
+    type: "country",
+    name: f.properties.name,
+    displayName: f.properties.displayName || f.properties.name,
+    sourceName: f.properties.name,
+    country: f.properties.name,
+    iso: f.properties.iso || "",
+    iso3: f.properties.iso3 || "",
+    continent: f.properties.continent || "",
+    lat: f.properties.labelLat,
+    lng: f.properties.labelLng,
+    geometry: f.geometry
+  }));
+}
+
 function makeQuestionPayload(req) {
   const rawDifficulty = String(req.query.cityDifficulty || req.query.difficulty || "mixed").toLowerCase();
   const difficulty = ["familiar", "mixed", "chaos"].includes(rawDifficulty) ? rawDifficulty : "mixed";
   const count = clamp(Number(req.query.count || 10), 1, 25);
+  const rawType = String(req.query.questionType || "city").toLowerCase();
+  const questionType = rawType === "country" ? "country" : "city";
   const options = {
-    questionType: String(req.query.questionType || "city"),
+    questionType,
     cityDifficulty: difficulty,
     practiceEnabled: String(req.query.practiceEnabled || "false") === "true",
     mapMode: String(req.query.mapMode || "hardcore"),
     scoringMode: String(req.query.scoringMode || "distance")
   };
   const debug = {};
+  if (rawType && rawType !== questionType) debug.questionTypeForcedToCity = true;
 
-  if (options.questionType !== "city") {
-    options.questionType = "city";
-    debug.questionTypeForcedToCity = true;
+  if (questionType === "country") {
+    const questions = buildCountryQuestions(count, debug);
+    return {
+      apiVersion: API_VERSION,
+      generatedAt: new Date().toISOString(),
+      count: questions.length,
+      difficulty,
+      questionType: "country",
+      source: "country-pool",
+      debug,
+      questions
+    };
   }
 
   const questions = buildQuestions(count, options, debug);
-
   return {
     apiVersion: API_VERSION,
     generatedAt: new Date().toISOString(),
     count: questions.length,
     difficulty,
+    questionType: "city",
     source: sourceFor(difficulty),
     debug,
     questions

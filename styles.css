@@ -3165,3 +3165,55 @@ body.final-overlay-active .final-map-overlay.show {
   color: var(--muted);
   margin-bottom: 6px;
 }
+
+/* ---------- v67 overlay polish ----------------------------------------
+   Tighten the top question panel, keep Leaflet controls/attribution
+   from clashing with reveal panels, and improve solo-mode spacing. */
+
+/* Slightly more compact top question panel, especially after reveal. */
+body.in-game .target {
+  font-size: clamp(18px, 3.4vw, 30px);
+  letter-spacing: -0.035em;
+}
+body.in-game.round-revealed-state .target {
+  font-size: clamp(17px, 3vw, 26px);
+  line-height: 1.08;
+}
+
+/* Hide Leaflet zoom + attribution whenever a reveal panel is on top of
+   the map. Final overlay already hides them; this also covers the
+   normal revealed state and the spotlight overlay. */
+body.round-revealed-state .leaflet-control-zoom,
+body.round-revealed-state .leaflet-control-attribution {
+  opacity: 0;
+  pointer-events: none;
+}
+body.final-overlay-active .leaflet-control-zoom,
+body.final-overlay-active .leaflet-control-attribution {
+  display: none !important;
+}
+
+/* Solo-mode room-code area: render a compact "Solo run" summary chip
+   instead of a multiplayer-style code. */
+body.single-player-game #copyLinkBtn { display: none; }
+body.single-player-game #roomCodeDisplay {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+body.single-player-game #roomCodeLabel {
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+/* Country-mode answer outline: gentle glow under the orange polygon. */
+.leaflet-overlay-pane svg path {
+  filter: drop-shadow(0 0 6px rgba(255, 123, 0, 0.35));
+}
+
+/* Country-mode reveal: keep the answer pin readable above the polygon. */
+body.round-revealed-state .answer-pin {
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.45));
+}

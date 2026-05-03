@@ -311,3 +311,19 @@ v64 version/copy diagnostics
 - Copy link has a prompt fallback if Clipboard API fails.
 - Copy results uses the same clipboard fallback.
 - Debug panel includes app version and current join URL.
+
+v67 country mode
+
+- Adds Country mode alongside city modes. /api/questions accepts
+  questionType=country and returns simplified per-country geometry.
+- Country scoring is client-side: pin inside the polygon = 1000;
+  otherwise score = max(50, round(1000 * exp(-distanceToBorderKm / 1200))).
+- Familiar/mixed/chaos city pools are unchanged and still static.
+
+Country boundary data
+- data/countries.geojson is built from Natural Earth 1:110m admin 0
+  countries. Natural Earth data is in the public domain. Source:
+  https://github.com/nvkelso/natural-earth-vector
+- The build script lives at scripts/build-countries.js and slims the
+  raw Natural Earth file to ~200KB by stripping unused properties and
+  rounding coordinates to 3 decimal places.

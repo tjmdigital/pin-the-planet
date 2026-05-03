@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v64-version-copy";
+const PTP_APP_VERSION = "v67-country-mode";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -144,25 +144,98 @@ function randomFrom(options, seed) {
 function verdictForDistance(distanceKm) {
   const tone = currentToneMode();
   if (!Number.isFinite(distanceKm)) {
-    if (tone === "school") return "No guess this time. Try to make a sensible estimate next round.";
-    if (tone === "friendly") return "No guess submitted this time.";
-    return "No guess. Bottle job.";
+    if (tone === "school") return randomFrom([
+      "No guess this time. Try to make a sensible estimate next round.",
+      "No pin submitted. Use the reveal to learn the location.",
+      "Empty pin this round. The map is a tool - use it next time.",
+      "No estimate this time. Have a look at the answer for next round."
+    ], 0);
+    if (tone === "friendly") return randomFrom([
+      "No guess submitted this time.",
+      "No pin this round. Plenty more to come.",
+      "Missed the timer. The next round resets it.",
+      "No guess - we’ve all been there."
+    ], 0);
+    return randomFrom([
+      "No guess. Bottle job.",
+      "Didn’t pin. Stunning lack of commitment.",
+      "Empty round. Inspirational stuff.",
+      "Couldn’t even commit to wrong.",
+      "Pin abstention noted by the committee.",
+      "Zero pin, zero point. Take a hard look."
+    ], 0);
   }
 
   if (tone === "school") {
-    if (distanceKm < 75) return "Excellent work. That is a very accurate estimate.";
-    if (distanceKm < 300) return "Very close. You clearly knew the right region.";
-    if (distanceKm < 1000) return "Good effort. You were in the right broad area.";
-    if (distanceKm < 3000) return "Not quite, but your guess gives you a useful clue for next time.";
-    return "That was a long way off, but the reveal is a good chance to learn the location.";
+    if (distanceKm < 75) return randomFrom([
+      "Excellent work. That is a very accurate estimate.",
+      "Outstanding placement. You clearly knew this one.",
+      "Top-quality pin. Very precise.",
+      "Strong geographical reasoning. Great pin."
+    ], distanceKm);
+    if (distanceKm < 300) return randomFrom([
+      "Very close. You clearly knew the right region.",
+      "Strong estimate within the broader region.",
+      "A confident regional placement. Well reasoned.",
+      "Close enough to count as a strong answer."
+    ], distanceKm);
+    if (distanceKm < 1000) return randomFrom([
+      "Good effort. You were in the right broad area.",
+      "Decent placement. Right part of the world.",
+      "Reasonable pin. Continent-level accuracy.",
+      "Right area, even if the city slipped past."
+    ], distanceKm);
+    if (distanceKm < 3000) return randomFrom([
+      "Not quite, but your guess gives you a useful clue for next time.",
+      "Some way off, but a useful learning point.",
+      "Wrong region, but a fair attempt.",
+      "Not on target, but an honest estimate."
+    ], distanceKm);
+    return randomFrom([
+      "That was a long way off, but the reveal is a good chance to learn the location.",
+      "Quite a distance off. The reveal should help next time.",
+      "A long way off. Worth studying the answer.",
+      "Far from the answer - the reveal is the lesson here."
+    ], distanceKm);
   }
 
   if (tone === "friendly") {
-    if (distanceKm < 75) return "Brilliant guess. Very nicely done.";
-    if (distanceKm < 300) return "Strong effort. That was close.";
-    if (distanceKm < 1000) return "Decent guess. Points on the board.";
-    if (distanceKm < 3000) return "A brave guess. Not quite there.";
-    return "A long way off, but at least you committed.";
+    if (distanceKm < 75) return randomFrom([
+      "Brilliant guess. Very nicely done.",
+      "Top pin. Lovely work.",
+      "Spot on. Beautifully placed.",
+      "Pinpoint. Take a bow.",
+      "Properly accurate. Well played.",
+      "Sharp eye. Excellent pin."
+    ], distanceKm);
+    if (distanceKm < 300) return randomFrom([
+      "Strong effort. That was close.",
+      "Lovely pin. Right neighbourhood.",
+      "Great regional placement.",
+      "Very respectable. Well done.",
+      "Tidy bit of pinning."
+    ], distanceKm);
+    if (distanceKm < 1000) return randomFrom([
+      "Decent guess. Points on the board.",
+      "Solid effort. Right general area.",
+      "Reasonable pin. Score banked.",
+      "Not bad at all. Onwards.",
+      "Decent stab at it. Points logged."
+    ], distanceKm);
+    if (distanceKm < 3000) return randomFrom([
+      "A brave guess. Not quite there.",
+      "Bold pin. Slightly off the mark.",
+      "Wrong region, but a confident attempt.",
+      "Plenty of pin, less of a clue.",
+      "Hopeful pin. Onwards to the next."
+    ], distanceKm);
+    return randomFrom([
+      "A long way off, but at least you committed.",
+      "Big swing. The map shrugged.",
+      "Far away, but no shame in trying.",
+      "Brave commitment. Sadly the wrong continent.",
+      "Bold attempt. The reveal will surprise you."
+    ], distanceKm);
   }
 
   const bands = [
@@ -174,7 +247,11 @@ function verdictForDistance(distanceKm) {
       "Filthy. Absolutely filthy.",
       "That is annoyingly elite geography.",
       "You’ve either been there or you’re lying.",
-      "Borderline forensic. Horrible stuff."
+      "Borderline forensic. Horrible stuff.",
+      "That pin is a confession. Lock him up.",
+      "Pinpoint accuracy. Genuinely upsetting.",
+      "Disgustingly close. Nobody asked for this.",
+      "Surgical. The rest of us are crying."
     ]},
     { max: 75, lines: [
       "Basically in the right pub.",
@@ -184,7 +261,11 @@ function verdictForDistance(distanceKm) {
       "Close enough to start acting unbearable.",
       "A properly sharp guess, unfortunately.",
       "Very strong. Sickening, really.",
-      "That’s the kind of guess that ruins friendships."
+      "That’s the kind of guess that ruins friendships.",
+      "Top-tier pinning. Insufferable.",
+      "Within walking distance of correct. Awful.",
+      "Sharp work. Cue the smug face.",
+      "Absurdly close. He’ll be insufferable for hours."
     ]},
     { max: 200, lines: [
       "Very respectable. Horrible to admit.",
@@ -194,7 +275,11 @@ function verdictForDistance(distanceKm) {
       "Strong effort. Smugness incoming.",
       "You can dine out on that for at least a week.",
       "Very decent. Deeply irritating.",
-      "Close enough for boastful retellings."
+      "Close enough for boastful retellings.",
+      "Quietly excellent. Loudly annoying.",
+      "Same county energy. Worryingly competent.",
+      "Disturbingly tidy work.",
+      "He’ll bring this up at three weddings."
     ]},
     { max: 500, lines: [
       "Same general area. We’ll allow it.",
@@ -204,7 +289,11 @@ function verdictForDistance(distanceKm) {
       "A respectable lash at it.",
       "Plenty of guessers would have killed for that.",
       "Not perfect, but more than good enough.",
-      "That’ll do nicely in a pub quiz."
+      "That’ll do nicely in a pub quiz.",
+      "Same time zone, near enough.",
+      "Solid guess. Won’t change his life, but here we are.",
+      "A pin with manners.",
+      "Acceptable in a court of law."
     ]},
     { max: 1000, lines: [
       "Not awful, not clever.",
@@ -214,7 +303,11 @@ function verdictForDistance(distanceKm) {
       "A serviceable guess from a serviceable man.",
       "Decent enough. No medals, no shame.",
       "Competent, which feels almost suspicious.",
-      "Close enough to avoid public ridicule."
+      "Close enough to avoid public ridicule.",
+      "Pin with mid-table energy.",
+      "An honest middle-of-the-road effort.",
+      "Wouldn’t win a quiz, wouldn’t lose it either.",
+      "That pin has a beige personality."
     ]},
     { max: 2000, lines: [
       "Confidently adjacent to reality.",
@@ -224,7 +317,11 @@ function verdictForDistance(distanceKm) {
       "Not right, but not fully embarrassing either.",
       "There was a shape to the logic. Sadly not much more.",
       "A respectable miss. Still a miss.",
-      "You were circling the drain of correctness."
+      "You were circling the drain of correctness.",
+      "A wrong pin with a confident face.",
+      "Wrong, but with conviction.",
+      "Plausible nonsense.",
+      "A miss with a press release."
     ]},
     { max: 4000, lines: [
       "Same planet, at least.",
@@ -234,6 +331,9 @@ function verdictForDistance(distanceKm) {
       "You’ve mistaken confidence for accuracy.",
       "Somewhere between hopeful and clueless.",
       "Wrong enough to raise eyebrows.",
+      "Pin acted on intuition. Intuition was drunk.",
+      "Geography filed under fiction.",
+      "Confidence: 100. Map use: 0.",
       "That pin had ambition, not evidence."
     ]},
     { max: 8000, lines: [
@@ -244,7 +344,11 @@ function verdictForDistance(distanceKm) {
       "An absolute hostage situation of a guess.",
       "That is catastrophically unwell geography.",
       "You’ve treated the globe like a dartboard.",
-      "The pin is wandering about unsupervised."
+      "The pin is wandering about unsupervised.",
+      "A pin with no fixed abode.",
+      "An emotional decision, not a geographical one.",
+      "Pin disowned by science.",
+      "A guess that needs counselling."
     ]},
     { max: Infinity, lines: [
       "Wrong hemisphere. Tremendous work.",
@@ -254,7 +358,11 @@ function verdictForDistance(distanceKm) {
       "At that point it’s less a guess, more a cry for help.",
       "You’ve gone so wrong it feels personal.",
       "That belongs in The Hague.",
-      "An absolute war crime of a pin."
+      "An absolute war crime of a pin.",
+      "Pin lost in space and time.",
+      "A guess with its own gravitational field.",
+      "Genuinely landmark wrongness.",
+      "That pin will be studied for generations."
     ]}
   ];
 
@@ -264,23 +372,263 @@ function verdictForDistance(distanceKm) {
 
 function bestSpotlightCopy(distanceKm) {
   const tone = currentToneMode();
-  if (tone === "school") return "Best estimate this round. Excellent use of map knowledge.";
-  if (tone === "friendly") return "Best guess of the round. Nicely done.";
-  if (!Number.isFinite(distanceKm)) return "No idea how he’s won that, but here we are.";
-  if (distanceKm < 50) return randomFrom(["Absolutely obscene. Investigate immediately.", "That is elite behaviour. Sickening stuff.", "A monstrous guess. Everyone hates this."], distanceKm);
-  if (distanceKm < 250) return randomFrom(["Very sharp. He’ll be unbearable about that.", "Excellent work, sadly.", "That’s properly good and deeply annoying."], distanceKm);
-  if (distanceKm < 1000) return randomFrom(["Best of the lot. Pub-quiz royalty for one round.", "A decent bit of work in a sea of confusion.", "Strong enough to earn smug rights."], distanceKm);
-  return randomFrom(["Not brilliant, but still enough to win this circus.", "Best of a scruffy bunch.", "He’s won, which says worrying things about the field."], distanceKm);
+  if (tone === "school") return randomFrom([
+    "Best estimate this round. Excellent use of map knowledge.",
+    "Top mark for the round. Strong reasoning.",
+    "Closest pin of the round. Well done.",
+    "A precise estimate. Geography skills paying off."
+  ], distanceKm);
+  if (tone === "friendly") return randomFrom([
+    "Best guess of the round. Nicely done.",
+    "Top of the pile. Great pin.",
+    "Lovely work. Round winner.",
+    "Closest pin of the round. Smart stuff.",
+    "Proper sharp. Well played.",
+    "Best of the lot. Take a bow."
+  ], distanceKm);
+  if (!Number.isFinite(distanceKm)) return randomFrom([
+    "No idea how he’s won that, but here we are.",
+    "Won by default. Stunning lack of competition.",
+    "Crowned champion of the empty field."
+  ], distanceKm);
+  if (distanceKm < 50) return randomFrom([
+    "Absolutely obscene. Investigate immediately.",
+    "That is elite behaviour. Sickening stuff.",
+    "A monstrous guess. Everyone hates this.",
+    "Forensic. Suspicious. Absolutely filthy.",
+    "Not a guess, a confession. Genuinely upsetting.",
+    "Annoyingly perfect. The smugness will be unbearable.",
+    "That pin is a war crime against the rest of the field."
+  ], distanceKm);
+  if (distanceKm < 250) return randomFrom([
+    "Very sharp. He’ll be unbearable about that.",
+    "Excellent work, sadly.",
+    "That’s properly good and deeply annoying.",
+    "Annoyingly close. Cue the smug grin.",
+    "Disgustingly accurate. Apologies to your friends.",
+    "Top-tier pinning. Insufferable.",
+    "Genuinely sharp. Bravo. Reluctantly."
+  ], distanceKm);
+  if (distanceKm < 1000) return randomFrom([
+    "Best of the lot. Pub-quiz royalty for one round.",
+    "A decent bit of work in a sea of confusion.",
+    "Strong enough to earn smug rights.",
+    "Solid pinning. Crown for the round.",
+    "Decent work in a weak field.",
+    "Heroically average, but the best heroically average.",
+    "A worthy round winner. For now."
+  ], distanceKm);
+  return randomFrom([
+    "Not brilliant, but still enough to win this circus.",
+    "Best of a scruffy bunch.",
+    "He’s won, which says worrying things about the field.",
+    "Tallest dwarf of the round.",
+    "Won by being the least wrong.",
+    "Champion of a deeply mediocre round.",
+    "The least embarrassing pin. Take what you can."
+  ], distanceKm);
 }
 
 function worstSpotlightCopy(distanceKm) {
   const tone = currentToneMode();
-  if (tone === "school") return "Most room for improvement this round. The reveal should help.";
-  if (tone === "friendly") return "Tough one. There is always the next round.";
-  if (!Number.isFinite(distanceKm)) return "Didn’t even submit. Bottle job of the round.";
-  if (distanceKm < 1000) return randomFrom(["Harsh to roast this, but someone has to finish last.", "Unlucky. A decent guess in a stronger field.", "Not a disaster - just not good enough."], distanceKm);
-  if (distanceKm < 4000) return randomFrom(["There was a method. Shame about the result.", "An imaginative pin with tragic consequences.", "Wrong in a way that felt avoidable."], distanceKm);
-  return randomFrom(["Absolutely appalling. A landmark performance in being wrong.", "That pin should be confiscated.", "A generational stinker of a guess."], distanceKm);
+  if (tone === "school") return randomFrom([
+    "Most room for improvement this round. The reveal should help.",
+    "A long way off this time. Use the reveal to learn the location.",
+    "Tough round. The reveal will help next time.",
+    "Try sketching mental regions before committing the pin."
+  ], distanceKm);
+  if (tone === "friendly") return randomFrom([
+    "Tough one. There is always the next round.",
+    "Bit of a swing and a miss. Onwards.",
+    "Not your round. The next one is yours.",
+    "Brave attempt. The map giveth and taketh away.",
+    "Tricky one. Don’t let it ruin the rest of the game."
+  ], distanceKm);
+  if (!Number.isFinite(distanceKm)) return randomFrom([
+    "Didn’t even submit. Bottle job of the round.",
+    "No pin, no points. Stunning commitment to nothing.",
+    "Couldn’t even commit to wrong.",
+    "A pin abstention. Genuinely shameful."
+  ], distanceKm);
+  if (distanceKm < 1000) return randomFrom([
+    "Harsh to roast this, but someone has to finish last.",
+    "Unlucky. A decent guess in a stronger field.",
+    "Not a disaster - just not good enough.",
+    "Saved by the proximity, ruined by the company.",
+    "Decent miss. Bad luck on the field.",
+    "Was almost respectable. Almost."
+  ], distanceKm);
+  if (distanceKm < 4000) return randomFrom([
+    "There was a method. Shame about the result.",
+    "An imaginative pin with tragic consequences.",
+    "Wrong in a way that felt avoidable.",
+    "Confidence: 10. Accuracy: criminal.",
+    "Whatever the logic was, it has been arrested.",
+    "A stinker dressed up as a strategy.",
+    "Geography by horoscope, apparently."
+  ], distanceKm);
+  return randomFrom([
+    "Absolutely appalling. A landmark performance in being wrong.",
+    "That pin should be confiscated.",
+    "A generational stinker of a guess.",
+    "Wrong continent, wrong instincts, wrong vibes.",
+    "An apocalyptic pin. Frame it.",
+    "That guess will be discussed for years.",
+    "A historic moment in the wrong direction."
+  ], distanceKm);
+}
+
+// --- Country-mode-specific feedback ---------------------------------------
+
+function countryVerdictCopy(row) {
+  const tone = currentToneMode();
+  const inside = row.inside;
+  const km = row.distance;
+
+  if (!row.hasGuess || !Number.isFinite(km)) {
+    if (tone === "school") return "No guess submitted. Take a moment with the reveal to find the country.";
+    if (tone === "friendly") return "No guess this round. Plenty more rounds to come.";
+    return randomFrom([
+      "No guess. Even a wild jab beats this.",
+      "Didn’t pin a thing. Inspired commitment to nothing.",
+      "Empty pin energy. Bottle job."
+    ], 0);
+  }
+
+  if (inside) {
+    if (tone === "school") return randomFrom([
+      "Inside the country - excellent placement.",
+      "Pin landed inside the borders. Great work.",
+      "Clean hit. Maximum points."
+    ], km);
+    if (tone === "friendly") return randomFrom([
+      "Inside the country. Lovely pin.",
+      "Bang inside. Top score.",
+      "Right in the middle of it. Nicely done.",
+      "Pin in the country - full marks.",
+      "Nailed the borders. Maximum points."
+    ], km);
+    return randomFrom([
+      "Inside the country. Filthy precision.",
+      "Inside the lines. Insufferable.",
+      "Bang in. Annoying, frankly.",
+      "Pin landed home. Smug rights granted.",
+      "Inside the borders. Investigate immediately.",
+      "Full points. Genuinely upsetting accuracy."
+    ], km);
+  }
+
+  if (tone === "school") {
+    if (km < 100) return "Very close to the border. Strong placement.";
+    if (km < 500) return "Right region, just outside the country.";
+    if (km < 1500) return "Same broad area. The reveal should help next time.";
+    if (km < 4000) return "Wrong region but useful learning. Check the reveal.";
+    return "A long way off. The reveal is the place to learn.";
+  }
+  if (tone === "friendly") {
+    if (km < 100) return "Just outside the border. Heartbreaker.";
+    if (km < 500) return "Right area. Country slipped past you.";
+    if (km < 1500) return "Same continent vibes. Decent stab.";
+    if (km < 4000) return "Wrong region, but it happens.";
+    return "A bold pin in the wrong direction. We move on.";
+  }
+  if (km < 100) return randomFrom([
+    "Just outside the border. Tragic.",
+    "Touching the line and still wrong.",
+    "Heartbreakingly close. The map doesn’t care.",
+    "A pin that died on the doorstep."
+  ], km);
+  if (km < 500) return randomFrom([
+    "Right area. Wrong country.",
+    "Geography at the regional level. Borders at the catastrophic level.",
+    "Knew the neighbourhood, missed the house.",
+    "Close-ish. Doesn’t pay the bills."
+  ], km);
+  if (km < 1500) return randomFrom([
+    "Same continent. Different country. Different millennium.",
+    "Got the shape of it. Forgot the country.",
+    "A confident regional miss.",
+    "Wrong country, but the right general mood."
+  ], km);
+  if (km < 4000) return randomFrom([
+    "Wrong region. Wrong vibes. Bold attempt.",
+    "That’s a different continent and you know it.",
+    "Geography by guesswork.",
+    "A pin with ambition and nothing else."
+  ], km);
+  return randomFrom([
+    "Wrong hemisphere. Iconic.",
+    "That’s not a guess, that’s a cry for help.",
+    "Pin lost in space and time.",
+    "A guess that needs an apology and a globe.",
+    "Spectacularly wrong. Everyone’s impressed in a bad way."
+  ], km);
+}
+
+function countryBestSpotlight(row) {
+  const tone = currentToneMode();
+  if (tone === "school") return row.inside ? "Pin landed inside the country. Excellent work." : "Closest to the border. Strong reasoning.";
+  if (tone === "friendly") return row.inside ? "Pinned inside the country. Top job." : "Closest to the border. Nicely done.";
+  if (row.inside) return randomFrom([
+    "Pin in the country. Smug rights granted.",
+    "Inside the borders. Insufferable.",
+    "Bang inside. Investigate immediately.",
+    "Forensic country pinning. Disgusting work.",
+    "Inside the lines. He’ll mention it for a week."
+  ], row.distance);
+  if (row.distance < 200) return randomFrom([
+    "Couldn’t quite get inside, but heroically close.",
+    "Pinned the border. Award energy.",
+    "Best of a near-miss field."
+  ], row.distance);
+  return randomFrom([
+    "Best pin in a confused field.",
+    "Won by being the least lost.",
+    "Champion of a regrettable round."
+  ], row.distance);
+}
+
+function countryWorstSpotlight(row) {
+  const tone = currentToneMode();
+  if (tone === "school") return Number.isFinite(row.distance) ? "Furthest pin from the country. The reveal should help." : "No guess submitted. Use the reveal to learn the location.";
+  if (tone === "friendly") return Number.isFinite(row.distance) ? "Tricky one. The next round is yours." : "No guess. Onwards.";
+  if (!Number.isFinite(row.distance)) return randomFrom([
+    "Didn’t even pin a country. Stunning.",
+    "No pin, no country, no chance.",
+    "An empty round. Inspirational."
+  ], 0);
+  if (row.distance < 1500) return randomFrom([
+    "Harsh roast - decent miss in a strong field.",
+    "Wrong country, but at least the right region.",
+    "Bad luck more than bad pin."
+  ], row.distance);
+  if (row.distance < 4000) return randomFrom([
+    "Wrong region. Wrong country. Right confidence.",
+    "A miss with character.",
+    "Wrong continent energy."
+  ], row.distance);
+  return randomFrom([
+    "Wrong hemisphere. Iconic.",
+    "That pin needs a passport and an apology.",
+    "Spectacular geographical fiction.",
+    "A pin lost in international waters."
+  ], row.distance);
+}
+
+function verdictForRow(row, question) {
+  if (!row?.hasGuess) return verdictForDistance(Infinity);
+  if (question?.type === "country") return countryVerdictCopy(row);
+  return verdictForDistance(row.distance);
+}
+
+function bestSpotlightForRow(row, question) {
+  if (question?.type === "country") return countryBestSpotlight(row);
+  return bestSpotlightCopy(row.distance);
+}
+
+function worstSpotlightForRow(row, question) {
+  if (question?.type === "country") return countryWorstSpotlight(row);
+  return worstSpotlightCopy(row.distance);
 }
 
 function escapeHtml(input) {
@@ -608,6 +956,147 @@ function wrappedGuessForAnswer(guess, answer) {
     lat: guess.lat,
     lng: longitudeNearestToReference(guess.lng, answer.lng)
   };
+}
+
+// --- Country mode scoring helpers ---------------------------------------
+// Geometry comes from /api/questions as GeoJSON Polygon or MultiPolygon
+// in [lng, lat] order (per the spec). Helpers handle MultiPolygon and
+// the antimeridian by normalising longitudes relative to the test point.
+
+function isCountryQuestion(question) {
+  return question?.type === "country" || state.game?.questionType === "country";
+}
+
+function ringContainsPoint(ring, lat, lng) {
+  // Standard ray-casting; ring is [[lng, lat], ...].
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi > lat) !== (yj > lat)) &&
+      (lng < (xj - xi) * (lat - yi) / ((yj - yi) || 1e-12) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function polygonContainsPoint(polygon, lat, lng) {
+  if (!polygon?.length) return false;
+  if (!ringContainsPoint(polygon[0], lat, lng)) return false;
+  for (let i = 1; i < polygon.length; i++) {
+    if (ringContainsPoint(polygon[i], lat, lng)) return false; // hole
+  }
+  return true;
+}
+
+function geometryContainsPoint(geometry, lat, lng) {
+  if (!geometry) return false;
+  // Test the point against the original lng and the antimeridian-shifted lng,
+  // so guesses near +180/-180 still register correctly.
+  const candidates = [lng];
+  if (lng < 0) candidates.push(lng + 360);
+  else candidates.push(lng - 360);
+
+  if (geometry.type === "Polygon") {
+    return candidates.some((c) => polygonContainsPoint(geometry.coordinates, lat, c));
+  }
+  if (geometry.type === "MultiPolygon") {
+    return geometry.coordinates.some((poly) =>
+      candidates.some((c) => polygonContainsPoint(poly, lat, c))
+    );
+  }
+  return false;
+}
+
+function nearestPointOnSegmentKm(plat, plng, alat, alng, blat, blng) {
+  // Equirectangular projection at the mean latitude is plenty accurate
+  // for country-scale border distances. Caller must already have shifted
+  // segment longitudes into ±180° of plng.
+  const meanLat = ((alat + blat) / 2) * Math.PI / 180;
+  const cos = Math.cos(meanLat) || 1e-9;
+  const ax = alng * cos, ay = alat;
+  const bx = blng * cos, by = blat;
+  const px = plng * cos, py = plat;
+  const dx = bx - ax, dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  let t = lenSq > 0 ? ((px - ax) * dx + (py - ay) * dy) / lenSq : 0;
+  if (t < 0) t = 0; else if (t > 1) t = 1;
+  const cy = ay + t * dy;
+  const cx = ax + t * dx;
+  const lat = cy;
+  const lng = cx / cos;
+  return haversineKm(plat, plng, lat, lng);
+}
+
+function shiftLngTo(target, ref) {
+  let v = target;
+  while (v - ref > 180) v -= 360;
+  while (v - ref < -180) v += 360;
+  return v;
+}
+
+function distanceFromPointToRingKm(ring, plat, plng) {
+  let best = Infinity;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const a = ring[j], b = ring[i];
+    const alng = shiftLngTo(a[0], plng);
+    const blng = shiftLngTo(b[0], plng);
+    const d = nearestPointOnSegmentKm(plat, plng, a[1], alng, b[1], blng);
+    if (d < best) best = d;
+  }
+  return best;
+}
+
+function distanceToBorderKm(geometry, lat, lng) {
+  if (!geometry) return Infinity;
+  if (geometryContainsPoint(geometry, lat, lng)) return 0;
+  let best = Infinity;
+  if (geometry.type === "Polygon") {
+    for (const ring of geometry.coordinates) {
+      const d = distanceFromPointToRingKm(ring, lat, lng);
+      if (d < best) best = d;
+    }
+  } else if (geometry.type === "MultiPolygon") {
+    for (const poly of geometry.coordinates) {
+      for (const ring of poly) {
+        const d = distanceFromPointToRingKm(ring, lat, lng);
+        if (d < best) best = d;
+      }
+    }
+  }
+  return best;
+}
+
+function pointsForCountryDistance(distanceKm, inside, hasGuess = true) {
+  if (!hasGuess) return 0;
+  if (inside) return 1000;
+  if (!Number.isFinite(distanceKm)) return 0;
+  const base = Math.round(1000 * Math.exp(-distanceKm / 1200));
+  return Math.max(MIN_SUBMITTED_SCORE, base);
+}
+
+function scoreGuessForQuestion(guess, question) {
+  if (!guess || !question) {
+    return { hasGuess: false, distance: Infinity, points: 0, inside: false };
+  }
+  if (question.type === "country" && question.geometry) {
+    const inside = geometryContainsPoint(question.geometry, guess.lat, guess.lng);
+    const distance = inside ? 0 : distanceToBorderKm(question.geometry, guess.lat, guess.lng);
+    const points = pointsForCountryDistance(distance, inside, true);
+    return { hasGuess: true, distance, points, inside };
+  }
+  const distance = haversineKm(guess.lat, guess.lng, question.lat, question.lng);
+  const points = pointsForDistance(distance, true);
+  return { hasGuess: true, distance, points, inside: false };
+}
+
+function distanceTextForRow(row, question) {
+  if (!row?.hasGuess) return "No guess submitted";
+  if (question?.type === "country") {
+    if (row.inside) return "Inside the country";
+    return `${Math.round(row.distance).toLocaleString()} km from the border`;
+  }
+  return `${Math.round(row.distance).toLocaleString()} km away`;
 }
 
 function showGameScreen() {
@@ -1061,10 +1550,9 @@ function roundRows() {
   return players
     .map(player => {
       const guess = guesses[player.id];
-      if (!guess || !question) return { player, hasGuess: false, distance: Infinity, points: 0, guess: null };
-      const distance = haversineKm(guess.lat, guess.lng, question.lat, question.lng);
-      const points = pointsForDistance(distance, true);
-      return { player, hasGuess: true, distance, points, guess };
+      if (!guess || !question) return { player, hasGuess: false, distance: Infinity, points: 0, inside: false, guess: null };
+      const score = scoreGuessForQuestion(guess, question);
+      return { player, ...score, guess };
     })
     .sort((a, b) => {
       const scoreDelta = (b.points || 0) - (a.points || 0);
@@ -1147,9 +1635,15 @@ function renderGame() {
     $("allGuessesBanner").classList.remove("hidden");
     $("allGuessesBanner").classList.add("time-up");
   } else {
-    $("roundState").textContent = `${displayLabel} - place your pin`;
+    const isCountryRound = state.game.questionType === "country";
+    $("roundState").textContent = `${displayLabel} - ${isCountryRound ? "click inside the country" : "place your pin"}`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
-    $("playerHint").textContent = isSolo ? "Click the map to place or change your pin before time runs out." : (state.isHost ? "Click the map to submit your own guess. The round closes automatically once everyone has guessed." : "Click anywhere on the map to submit or change your guess.");
+    const countryHint = isCountryRound ? " Inside the country = full points." : "";
+    $("playerHint").textContent = isSolo
+      ? `Click the map to place or change your pin before time runs out.${countryHint}`
+      : (state.isHost
+        ? `Click the map to submit your own guess. The round closes automatically once everyone has guessed.${countryHint}`
+        : `Click anywhere on the map to submit or change your guess.${countryHint}`);
     if (allIn || roundClosedByAll) {
       $("allGuessesBanner").textContent = isSolo ? "✅ Guess locked in - score when ready." : (state.isHost ? "✅ All guesses are in - reveal time." : "✅ All guesses are in - waiting for host.");
       $("allGuessesBanner").classList.remove("hidden");
@@ -1419,13 +1913,14 @@ function renderResults() {
   if (isSolo) {
     $("roundResultsTitle").textContent = "Your round result";
     const row = rows[0];
-    const verdict = row?.hasGuess ? verdictForDistance(row.distance) : "No guess submitted. Bottle job.";
+    const question = currentQuestion();
+    const verdict = row?.hasGuess ? verdictForRow(row, question) : "No guess submitted. Bottle job.";
     const html = `
       <div class="result solo-result-card">
         <div class="solo-result-top">
           <div>
             <strong>${row?.player ? playerLabel(row.player) : "You"}</strong>
-            <p class="small muted">${row?.hasGuess ? `${Math.round(row.distance).toLocaleString()} km away` : "No guess submitted"}</p>
+            <p class="small muted">${distanceTextForRow(row, question)}</p>
           </div>
           <div class="round-points">${row?.hasGuess ? row.points : 0}</div>
         </div>
@@ -1445,7 +1940,7 @@ function renderResults() {
         <div class="round-rank">${index + 1}</div>
         <div>
           <strong>${playerLabel(row.player)}</strong>
-          <p class="small muted">${row.hasGuess ? `${Math.round(row.distance).toLocaleString()} km away - ${verdictForDistance(row.distance)}` : "No guess submitted - Bottle job."}</p>
+          <p class="small muted">${row.hasGuess ? `${distanceTextForRow(row, currentQuestion())} - ${verdictForRow(row, currentQuestion())}` : "No guess submitted - Bottle job."}</p>
         </div>
         <div class="round-points">${row.hasGuess ? row.points : 0}</div>
       </div>
@@ -1529,11 +2024,11 @@ function renderRoundSpotlight() {
         <div class="round-spotlight-avatar">${best.player.avatar || "🌍"}</div>
         <div>
           <div class="round-spotlight-name">${escapeHtml(best.player.name)}</div>
-          <div class="round-spotlight-meta">${Math.round(best.distance).toLocaleString()} km away</div>
+          <div class="round-spotlight-meta">${distanceTextForRow(best, currentQuestion())}</div>
         </div>
         <div class="round-spotlight-points">+${best.points || 0}</div>
       </div>
-      <div class="round-spotlight-verdict">${escapeHtml(bestSpotlightCopy(best.distance))}</div>
+      <div class="round-spotlight-verdict">${escapeHtml(bestSpotlightForRow(best, currentQuestion()))}</div>
     </div>
   `;
 
@@ -1546,11 +2041,11 @@ function renderRoundSpotlight() {
           <div class="round-spotlight-avatar">${worst.player.avatar || "🌍"}</div>
           <div>
             <div class="round-spotlight-name">${escapeHtml(worst.player.name)}</div>
-            <div class="round-spotlight-meta">${Math.round(worst.distance).toLocaleString()} km away</div>
+            <div class="round-spotlight-meta">${distanceTextForRow(worst, currentQuestion())}</div>
           </div>
           <div class="round-spotlight-points">+${worst.points || 0}</div>
         </div>
-        <div class="round-spotlight-verdict">${escapeHtml(worstSpotlightCopy(worst.distance))}</div>
+        <div class="round-spotlight-verdict">${escapeHtml(worstSpotlightForRow(worst, currentQuestion()))}</div>
       </div>
     `;
   }
@@ -1780,9 +2275,10 @@ function roundAwards(rows) {
   }
 
   let html = `<div class="result"><strong>🏆 Round awards</strong>`;
-  html += `<p class="small muted">Closest: ${playerLabel(best.player)} - ${Math.round(best.distance).toLocaleString()} km away.</p>`;
+  const awardQuestion = currentQuestion();
+  html += `<p class="small muted">Closest: ${playerLabel(best.player)} - ${distanceTextForRow(best, awardQuestion).toLowerCase()}.</p>`;
   if (worst && worst.player.id !== best.player.id) {
-    html += `<p class="small muted">Wooden spoon: ${playerLabel(worst.player)} - ${Math.round(worst.distance).toLocaleString()} km away.</p>`;
+    html += `<p class="small muted">Wooden spoon: ${playerLabel(worst.player)} - ${distanceTextForRow(worst, awardQuestion).toLowerCase()}.</p>`;
   }
   html += `</div>`;
   return html;
@@ -1839,7 +2335,8 @@ function renderPersonalResult() {
     return;
   }
 
-  const verdict = row.hasGuess ? verdictForDistance(row.distance) : "No guess submitted. Bottle job.";
+  const personalQuestion = currentQuestion();
+  const verdict = row.hasGuess ? verdictForRow(row, personalQuestion) : "No guess submitted. Bottle job.";
 
   card.classList.remove("hidden");
   const html = `
@@ -1847,7 +2344,7 @@ function renderPersonalResult() {
       <div class="personal-result-emoji">${row.player.avatar || "🌍"}</div>
       <div>
         <div class="personal-result-title">${isSoloGame() ? "Your round score" : "Your round result"}</div>
-        <div class="personal-result-meta">${row.hasGuess ? `${Math.round(row.distance).toLocaleString()} km away` : "No guess submitted"}</div>
+        <div class="personal-result-meta">${distanceTextForRow(row, personalQuestion)}</div>
         <div class="personal-result-verdict">${escapeHtml(verdict)}</div>
       </div>
       <div>
@@ -1867,12 +2364,31 @@ function renderMapMarkers() {
     state.answerMarker.remove();
     state.answerMarker = null;
   }
+  if (state.countryShape) {
+    state.countryShape.remove();
+    state.countryShape = null;
+  }
   state.guessLines.forEach(line => line.remove());
   state.revealMarkers.forEach(marker => marker.remove());
   state.guessLines = [];
   state.revealMarkers = [];
 
   if (state.game.revealed && question) {
+    if (question.type === "country" && question.geometry) {
+      try {
+        state.countryShape = L.geoJSON(question.geometry, {
+          style: {
+            color: "#ff7b00",
+            weight: 2,
+            fillColor: "#ff7b00",
+            fillOpacity: 0.18
+          }
+        }).addTo(state.map);
+      } catch (error) {
+        // Drawing the outline is a nicety. Don't break reveal if it fails.
+      }
+    }
+
     state.answerMarker = L.marker([question.lat, question.lng], { icon: markerIcons.answer, zIndexOffset: 900 })
       .bindPopup(`<strong>Answer:</strong> ${escapeHtml(locationDisplayName(question))}`)
       .addTo(state.map);
@@ -1884,23 +2400,30 @@ function renderMapMarkers() {
     rows.forEach((row) => {
       const distanceRank = Math.max(0, rowsByDistance.findIndex(distanceRow => distanceRow.player.id === row.player.id));
       const wrappedGuess = wrappedGuessForAnswer(row.guess, question);
+      const popupDistance = question.type === "country"
+        ? (row.inside ? "inside the country" : `${Math.round(row.distance).toLocaleString()} km from the border`)
+        : `${Math.round(row.distance).toLocaleString()} km`;
 
       const marker = L.marker([wrappedGuess.lat, wrappedGuess.lng], {
         icon: playerEmojiIcon(row, distanceRank, worstRow?.player?.id),
         zIndexOffset: 700 + (rows.length - distanceRank)
       })
-        .bindPopup(`<strong>${escapeHtml(row.player.name)}</strong><br>+${row.points} · ${Math.round(row.distance).toLocaleString()} km`)
+        .bindPopup(`<strong>${escapeHtml(row.player.name)}</strong><br>+${row.points} · ${popupDistance}`)
         .addTo(state.map);
 
       state.revealMarkers.push(marker);
 
-      const line = L.polyline([[wrappedGuess.lat, wrappedGuess.lng], [question.lat, question.lng]], {
-        weight: 3,
-        opacity: 0.62,
-        noClip: true
-      }).addTo(state.map);
-
-      state.guessLines.push(line);
+      // For country mode, skip the connector line when the pin is inside the
+      // country - the line just clutters the outline. For city mode and
+      // outside-country pins, the line reads as the distance trail.
+      if (!(question.type === "country" && row.inside)) {
+        const line = L.polyline([[wrappedGuess.lat, wrappedGuess.lng], [question.lat, question.lng]], {
+          weight: 3,
+          opacity: 0.62,
+          noClip: true
+        }).addTo(state.map);
+        state.guessLines.push(line);
+      }
     });
 
     const points = [[question.lat, question.lng], ...rows.map(row => {
@@ -1908,7 +2431,17 @@ function renderMapMarkers() {
       return [wrappedGuess.lat, wrappedGuess.lng];
     })];
 
-    if (points.length > 1) {
+    if (question.type === "country" && state.countryShape) {
+      try {
+        const shapeBounds = state.countryShape.getBounds();
+        const combined = points.length > 1 ? shapeBounds.extend(L.latLngBounds(points)) : shapeBounds;
+        state.map.fitBounds(combined.pad(0.18), { animate: true, duration: 0.55, maxZoom: 5 });
+      } catch (error) {
+        if (points.length > 1) {
+          state.map.fitBounds(L.latLngBounds(points).pad(0.32), { animate: true, duration: 0.55, maxZoom: 5 });
+        }
+      }
+    } else if (points.length > 1) {
       const bounds = L.latLngBounds(points);
       state.map.fitBounds(bounds.pad(0.32), { animate: true, duration: 0.55, maxZoom: 5 });
     }
@@ -1959,8 +2492,8 @@ async function revealRound() {
 
   players.forEach(player => {
     const guess = guesses[player.id];
-    const distance = guess ? haversineKm(guess.lat, guess.lng, question.lat, question.lng) : Infinity;
-    const points = guess ? pointsForDistance(distance, true) : 0;
+    const score = guess ? scoreGuessForQuestion(guess, question) : { points: 0 };
+    const points = score.points || 0;
     if (!isPracticeRound()) {
       playerUpdates[`players/${player.id}/total`] = (player.total || 0) + points;
     }
@@ -2267,11 +2800,18 @@ function buildResultsText() {
     const worst = currentRows[currentRows.length - 1];
     const bestQuestion = typeof locationDisplayName === "function" ? locationDisplayName(best.question || currentQuestion()) : (best.question?.name || currentQuestion()?.name || "the answer");
     lines.push("");
-    lines.push(`Best pin: ${best.player.name} was ${Math.round(best.distance).toLocaleString()}km from ${bestQuestion}.`);
+    const isCountryRound = (best.question || currentQuestion())?.type === "country";
+    const bestSuffix = isCountryRound
+      ? (best.inside ? "inside the country" : `${Math.round(best.distance).toLocaleString()}km from the border`)
+      : `${Math.round(best.distance).toLocaleString()}km from ${bestQuestion}`;
+    lines.push(`Best pin: ${best.player.name} was ${bestSuffix}.`);
 
     if (worst && worst.player.id !== best.player.id) {
       const worstQuestion = typeof locationDisplayName === "function" ? locationDisplayName(worst.question || currentQuestion()) : (worst.question?.name || currentQuestion()?.name || "the answer");
-      lines.push(`Worst pin: ${worst.player.name} was ${Math.round(worst.distance).toLocaleString()}km from ${worstQuestion}.`);
+      const worstSuffix = isCountryRound
+        ? (worst.inside ? "inside the country" : `${Math.round(worst.distance).toLocaleString()}km from the border`)
+        : `${Math.round(worst.distance).toLocaleString()}km from ${worstQuestion}`;
+      lines.push(`Worst pin: ${worst.player.name} was ${worstSuffix}.`);
     }
 
     if (currentRows.length > 1 && Number.isFinite(worst.distance)) {
@@ -2394,7 +2934,12 @@ function updateSetupSummary() {
 
   title.textContent = practice ? "Practice + game setup" : "Game setup";
   if (duration) duration.textContent = `~${approxMinutes} min`;
-  text.textContent = `${rounds} ${rounds === 1 ? "round" : "rounds"} of ${questionType.toLowerCase()}, ${timer.toLowerCase()} per round${practice ? ", plus a practice round first" : ""}. Expect ${difficultySummary}, ${mapSummary}, ${toneSummary}, and ${scoringSummary}.${timerWarning}`;
+  const isCountryMode = $("questionType")?.value === "country";
+  if (isCountryMode) {
+    text.textContent = `${rounds} ${rounds === 1 ? "round" : "rounds"} of countries, ${timer.toLowerCase()} per round${practice ? ", plus a practice round first" : ""}. Country mode: click inside the country. Inside = full points. Expect ${mapSummary}, ${toneSummary}, and ${scoringSummary}.${timerWarning}`;
+  } else {
+    text.textContent = `${rounds} ${rounds === 1 ? "round" : "rounds"} of ${questionType.toLowerCase()}, ${timer.toLowerCase()} per round${practice ? ", plus a practice round first" : ""}. Expect ${difficultySummary}, ${mapSummary}, ${toneSummary}, and ${scoringSummary}.${timerWarning}`;
+  }
 }
 
 function showSettingsDrawer(show = true) {
