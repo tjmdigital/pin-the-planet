@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v72-joint-awards-fix";
+const PTP_APP_VERSION = "v73-unique-avatars";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -135,6 +135,21 @@ const MIN_SUBMITTED_SCORE = 50;
 
 function randomAvatar() {
   return AVATARS[Math.floor(Math.random() * AVATARS.length)];
+}
+
+// Picks an avatar that none of the existing players in `game` already
+// use. Falls back to a random one if every avatar is already taken
+// (more players than emojis in AVATARS).
+function pickUniqueAvatar(game) {
+  const taken = new Set();
+  const players = game?.players || {};
+  for (const id of Object.keys(players)) {
+    const a = players[id]?.avatar;
+    if (a) taken.add(a);
+  }
+  const free = AVATARS.filter(a => !taken.has(a));
+  const pool = free.length ? free : AVATARS;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function randomFrom(options, seed) {
@@ -1418,7 +1433,7 @@ async function joinGame() {
   const playerId = `player_${uid()}`;
   await set(ref(db, `games/${code}/players/${playerId}`), {
     name,
-    avatar: randomAvatar(),
+    avatar: pickUniqueAvatar(game),
     total: 0,
     isHost: false,
     joinedAt: Date.now(),
