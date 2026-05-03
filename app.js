@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v71-country-scoring-tail";
+const PTP_APP_VERSION = "v72-joint-awards-fix";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -496,25 +496,30 @@ function countryVerdictCopy(row) {
   }
 
   if (inside) {
+    // The row already shows "Inside the country" as the distance label.
+    // Keep these to just the praise so we don't end up reading "Inside
+    // the country - Inside the country. <praise>".
     if (tone === "school") return randomFrom([
-      "Inside the country - excellent placement.",
-      "Pin landed inside the borders. Great work.",
-      "Clean hit. Maximum points."
+      "Excellent placement.",
+      "Great work.",
+      "Clean hit. Maximum points.",
+      "Pinpoint geography."
     ], km);
     if (tone === "friendly") return randomFrom([
-      "Inside the country. Lovely pin.",
-      "Bang inside. Top score.",
-      "Right in the middle of it. Nicely done.",
-      "Pin in the country - full marks.",
-      "Nailed the borders. Maximum points."
+      "Lovely pin.",
+      "Top score.",
+      "Right in the middle of it.",
+      "Full marks.",
+      "Nailed it.",
+      "Bang on."
     ], km);
     return randomFrom([
-      "Inside the country. Filthy precision.",
-      "Inside the lines. Insufferable.",
-      "Bang in. Annoying, frankly.",
-      "Pin landed home. Smug rights granted.",
-      "Inside the borders. Investigate immediately.",
-      "Full points. Genuinely upsetting accuracy."
+      "Filthy precision.",
+      "Insufferable.",
+      "Annoying, frankly.",
+      "Smug rights granted.",
+      "Investigate immediately.",
+      "Genuinely upsetting accuracy."
     ], km);
   }
 
@@ -2406,8 +2411,28 @@ function roundAwards(rows) {
     return `<div class="result"><strong>🏆 Round awards</strong><p class="small muted">Nobody guessed. Stunning commitment to the bit.</p></div>`;
   }
 
-  let html = `<div class="result"><strong>🏆 Round awards</strong>`;
   const awardQuestion = currentQuestion();
+  const isCountry = awardQuestion?.type === "country";
+  const everyoneInside = isCountry && guessed.length > 1 && guessed.every(r => r.inside);
+  const allTied = guessed.length > 1 && guessed.every(r => r.points === best.points);
+
+  // Joint round: don't crown a wooden spoon when everyone tied.
+  if (everyoneInside || allTied) {
+    const namesList = guessed.map(r => playerLabel(r.player)).join(", ");
+    let line;
+    if (everyoneInside) {
+      line = guessed.length === 2
+        ? `Both inside the country: ${namesList}. Joint full marks.`
+        : `All inside the country: ${namesList}. Joint full marks.`;
+    } else if (best.points <= 60) {
+      line = `Everyone miles off: ${namesList}. Honours even.`;
+    } else {
+      line = `Joint best: ${namesList}. Round called even.`;
+    }
+    return `<div class="result"><strong>🏆 Round awards</strong><p class="small muted">${line}</p></div>`;
+  }
+
+  let html = `<div class="result"><strong>🏆 Round awards</strong>`;
   html += `<p class="small muted">Closest: ${playerLabel(best.player)} - ${distanceTextForRow(best, awardQuestion).toLowerCase()}.</p>`;
   if (worst && worst.player.id !== best.player.id) {
     html += `<p class="small muted">Wooden spoon: ${playerLabel(worst.player)} - ${distanceTextForRow(worst, awardQuestion).toLowerCase()}.</p>`;
