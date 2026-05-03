@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v75-reposition-ghosts-scrollbar";
+const PTP_APP_VERSION = "v76-toast-polish";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -958,9 +958,16 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 function toast(message) {
   const el = $("toast");
+  if (!el) return;
+  // Skip back-to-back duplicates so a flurry of map taps doesn't queue
+  // a stack of identical "Pin placed" toasts.
+  if (state.lastToastMessage === message && Date.now() - (state.lastToastAt || 0) < 1500) return;
+  state.lastToastMessage = message;
+  state.lastToastAt = Date.now();
   el.textContent = message;
   el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 2100);
+  clearTimeout(state.toastHideTimer);
+  state.toastHideTimer = setTimeout(() => el.classList.remove("show"), 2100);
 }
 
 function haversineKm(lat1, lon1, lat2, lon2) {
@@ -1262,7 +1269,7 @@ async function submitGuess() {
     submittedAt: serverTimestamp()
   });
   trackEvent("round_guess_submitted", { code: state.gameCode, round, time_to_guess: typeof timeToGuess !== "undefined" ? timeToGuess : null, timer_setting: state.game?.roundDurationSeconds });
-  toast(isSoloGame() ? "Pin placed - tap to move it" : "Guess submitted");
+  toast("Pin placed - tap elsewhere to move it");
 }
 
 async function createGame(isSinglePlayer = false) {
