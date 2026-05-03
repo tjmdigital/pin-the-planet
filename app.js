@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v68-solo-reposition-country-polish";
+const PTP_APP_VERSION = "v69-solo-setup-fix";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -690,12 +690,15 @@ function setHtmlIfChanged(el, html, cacheKey = null) {
 
 function getSetupOptions() {
   const practiceEnabled = $("practiceRound")?.value === "on";
-  const roundsRequested = clamp(Number($("roundCount")?.value || 10), 1, 20);
+  const rawRounds = Number($("roundCount")?.value);
+  const roundsRequested = clamp(Number.isFinite(rawRounds) && rawRounds > 0 ? rawRounds : 10, 1, 20);
+  const rawDuration = Number($("roundDuration")?.value);
+  const roundDurationSeconds = clamp(Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : ROUND_DURATION_SECONDS, 10, 60);
   return {
     roundsRequested,
-    roundDurationSeconds: clamp(Number($("roundDuration")?.value || ROUND_DURATION_SECONDS), 10, 60),
+    roundDurationSeconds,
     practiceEnabled,
-    questionType: $("questionType")?.value || "city",
+    questionType: $("questionType")?.value === "country" ? "country" : "city",
     cityDifficulty: $("cityDifficulty")?.value || "mixed",
     mapMode: $("mapMode")?.value || "hardcore",
     toneMode: $("toneMode")?.value || "lads",
@@ -762,7 +765,10 @@ function isPracticeRound() {
 }
 
 function scoredRoundTotal() {
-  return state.game?.roundsRequested || Math.max(0, (state.game?.questions?.length || 0) - (state.game?.practiceEnabled ? 1 : 0));
+  const requested = Number(state.game?.roundsRequested) || 0;
+  const fromQuestions = Math.max(0, (state.game?.questions?.length || 0) - (state.game?.practiceEnabled ? 1 : 0));
+  // Always at least 1 so the UI can never render "Round 0 of 0".
+  return Math.max(1, requested || fromQuestions || 1);
 }
 
 function scoredRoundNumber() {
@@ -1232,8 +1238,15 @@ async function createGame(isSinglePlayer = false) {
   const hostName = isSinglePlayer
     ? (!rawHostName || rawHostName.toLowerCase() === "quiz host" ? "You" : rawHostName)
     : (rawHostName || "Quiz host");
+  // Read setup straight from the DOM so Play solo always reflects the
+  // current dropdowns/inputs, even if a previous game stashed defaults.
   const options = getSetupOptions();
+  // Defensive clamp: never start a 0-round game even if upstream code is
+  // tampered with.
+  options.roundsRequested = clamp(Number(options.roundsRequested) || 10, 1, 20);
+  options.roundDurationSeconds = clamp(Number(options.roundDurationSeconds) || ROUND_DURATION_SECONDS, 10, 60);
   const questionCount = questionCountForOptions(options);
+  state.lastCreateOptions = { ...options, isSinglePlayer: Boolean(isSinglePlayer), createdAt: Date.now() };
 
   $("createGameBtn").disabled = true;
   $("playSoloBtn").disabled = true;
@@ -1848,8 +1861,13 @@ function renderRoundStatus() {
 
   if (isClosed) {
     $("roundStatusPill").textContent = "Closed";
-    $("roundStatusMain").textContent = `${submitted}/${total} guessed`;
-    $("roundStatusSub").textContent = state.isHost ? "The round is closed. Reveal the answer when ready." : "The round is closed. Waiting for the answer reveal.";
+    if (isSoloGame()) {
+      $("roundStatusMain").textContent = "Time's up";
+      $("roundStatusSub").textContent = submitted ? "Score the round to see how you did." : "No pin placed. Score the round for a 0.";
+    } else {
+      $("roundStatusMain").textContent = `${submitted}/${total} guessed`;
+      $("roundStatusSub").textContent = state.isHost ? "The round is closed. Reveal the answer when ready." : "The round is closed. Waiting for the answer reveal.";
+    }
     return;
   }
 
@@ -2998,26 +3016,83 @@ $("showHostSetupBtn")?.addEventListener("click", () => {
   $("hostSetupPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
+// --- Setup persistence ----------------------------------------------------
+const SETUP_PREFS_KEY = "pinThePlanetSetupPrefs";
+const SETUP_PREF_FIELDS = [
+  "hostName", "roundCount", "roundDuration", "practiceRound",
+  "questionType", "cityDifficulty", "mapMode", "toneMode", "scoringMode"
+];
+
+function loadSetupPrefs() {
+  try { return JSON.parse(localStorage.getItem(SETUP_PREFS_KEY) || "{}"); }
+  catch { return {}; }
+}
+
+function saveSetupPrefs() {
+  const prefs = {};
+  for (const id of SETUP_PREF_FIELDS) {
+    const el = $(id);
+    if (!el) continue;
+    prefs[id] = el.value;
+  }
+  try { localStorage.setItem(SETUP_PREFS_KEY, JSON.stringify(prefs)); }
+  catch { /* storage full / private mode - ignore */ }
+}
+
+function applySetupPrefs(prefs) {
+  if (!prefs || typeof prefs !== "object") return;
+  for (const id of SETUP_PREF_FIELDS) {
+    const el = $(id);
+    if (!el) continue;
+    const value = prefs[id];
+    if (value === undefined || value === null || value === "") continue;
+    if (el.tagName === "SELECT") {
+      // Only apply if the option actually exists.
+      if ([...el.options].some(opt => opt.value === String(value))) el.value = String(value);
+    } else {
+      el.value = String(value);
+    }
+  }
+}
+
+function clampRoundCountInput() {
+  const el = $("roundCount");
+  if (!el) return;
+  const n = Number(el.value);
+  if (!Number.isFinite(n) || n < 1) el.value = "1";
+  else if (n > 20) el.value = "20";
+}
+
+// Apply persisted prefs on load (does not override join-link mode).
+const isJoinLinkLoad = Boolean(new URLSearchParams(window.location.search).get("room"));
+if (!isJoinLinkLoad) applySetupPrefs(loadSetupPrefs());
+
 ["roundCount", "roundDuration", "practiceRound", "questionType", "cityDifficulty", "mapMode", "toneMode", "scoringMode"].forEach((id) => {
-  $(id)?.addEventListener("input", updateSetupSummary);
-  $(id)?.addEventListener("change", () => {
+  $(id)?.addEventListener("input", () => {
+    if (id === "roundCount") clampRoundCountInput();
     updateSetupSummary();
+    saveSetupPrefs();
+  });
+  $(id)?.addEventListener("change", () => {
+    if (id === "roundCount") clampRoundCountInput();
+    updateSetupSummary();
+    saveSetupPrefs();
     if (typeof getSetupOptions === "function" && typeof warmCityPool === "function" && typeof questionCountForOptions === "function") {
       const options = getSetupOptions();
       warmCityPool(questionCountForOptions(options), options).catch(() => {});
     }
   });
 });
+$("hostName")?.addEventListener("change", saveSetupPrefs);
+$("hostName")?.addEventListener("blur", saveSetupPrefs);
 
 updateSetupSummary();
 
 $("createGameBtn").addEventListener("click", () => createGame(false));
-$("playSoloBtn").addEventListener("click", () => createGame(true));
-["roundCount", "practiceRound", "questionType", "cityDifficulty"].forEach(id => {
-  $(id)?.addEventListener("change", () => {
-    const options = getSetupOptions();
-    warmCityPool(questionCountForOptions(options), options).catch(() => {});
-  });
+$("playSoloBtn").addEventListener("click", () => {
+  // Belt-and-braces: ensure the click can never end up creating a
+  // multiplayer room. We always pass true.
+  createGame(true);
 });
 warmCityPool(questionCountForOptions(getSetupOptions()), getSetupOptions()).catch(() => {});
 $("roundDuration").addEventListener("change", () => {});
@@ -3134,6 +3209,25 @@ function renderDebugPanel() {
     catch { return {}; }
   })();
 
+  const setupSnapshot = (() => {
+    try { return getSetupOptions(); } catch { return null; }
+  })();
+
+  const gameSnapshot = state.game ? {
+    singlePlayer: Boolean(state.game.singlePlayer),
+    questionType: state.game.questionType || null,
+    cityDifficulty: state.game.cityDifficulty || null,
+    roundsRequested: state.game.roundsRequested || null,
+    roundDurationSeconds: state.game.roundDurationSeconds || null,
+    practiceEnabled: Boolean(state.game.practiceEnabled),
+    mapMode: state.game.mapMode || null,
+    toneMode: state.game.toneMode || null,
+    scoringMode: state.game.scoringMode || null,
+    started: Boolean(state.game.started),
+    revealed: Boolean(state.game.revealed),
+    currentRound: state.game.currentRound ?? null
+  } : null;
+
   panel.innerHTML = `
     <strong>Debug</strong>
     <button id="debugCloseBtn" type="button">×</button>
@@ -3144,6 +3238,9 @@ function renderDebugPanel() {
       playerId: state.playerId,
       isHost: state.isHost,
       stage: currentAbandonStage?.(),
+      setup: setupSnapshot,
+      lastCreate: state.lastCreateOptions || null,
+      game: gameSnapshot,
       events: events.slice(-10),
       soloBestKeys: Object.keys(soloBests)
     }, null, 2))}</pre>
@@ -3155,10 +3252,70 @@ function renderDebugPanel() {
 setInterval(renderDebugPanel, 1500);
 
 
+// Apply optional ?mode=solo URL overrides to the setup controls so a
+// link like /?mode=solo&questionType=country&rounds=2&timer=10 starts a
+// 2-round solo country game with a 10-second timer.
+function applySoloUrlOverrides(params) {
+  const setSelect = (id, value, allowed = null) => {
+    const el = $(id);
+    if (!el || value == null) return;
+    const next = String(value).toLowerCase();
+    if (allowed && !allowed.includes(next)) return;
+    if (el.tagName === "SELECT") {
+      if ([...el.options].some(opt => opt.value === next)) el.value = next;
+    } else {
+      el.value = next;
+    }
+  };
+
+  if (params.has("questionType")) {
+    setSelect("questionType", params.get("questionType"), ["city", "country"]);
+  }
+  if (params.has("difficulty") || params.has("cityDifficulty")) {
+    setSelect("cityDifficulty", params.get("cityDifficulty") || params.get("difficulty"), ["familiar", "mixed", "chaos"]);
+  }
+  if (params.has("mapMode")) {
+    setSelect("mapMode", params.get("mapMode"), ["hardcore", "outlines", "labels"]);
+  }
+  if (params.has("tone") || params.has("toneMode")) {
+    setSelect("toneMode", params.get("toneMode") || params.get("tone"), ["lads", "friendly", "school"]);
+  }
+  if (params.has("scoring") || params.has("scoringMode")) {
+    setSelect("scoringMode", params.get("scoringMode") || params.get("scoring"));
+  }
+  if (params.has("practice")) {
+    const v = String(params.get("practice")).toLowerCase();
+    setSelect("practiceRound", v === "1" || v === "on" || v === "true" ? "on" : "off", ["on", "off"]);
+  }
+  if (params.has("rounds") || params.has("roundCount")) {
+    const raw = Number(params.get("rounds") ?? params.get("roundCount"));
+    if (Number.isFinite(raw)) {
+      const el = $("roundCount");
+      if (el) el.value = String(clamp(Math.round(raw), 1, 20));
+    }
+  }
+  if (params.has("timer") || params.has("roundDuration")) {
+    const raw = Number(params.get("timer") ?? params.get("roundDuration"));
+    if (Number.isFinite(raw)) {
+      const el = $("roundDuration");
+      if (el) {
+        const target = String(clamp(Math.round(raw), 10, 60));
+        if ([...el.options].some(opt => opt.value === target)) el.value = target;
+      }
+    }
+  }
+  if (params.has("name")) {
+    const el = $("hostName");
+    if (el && params.get("name")) el.value = String(params.get("name")).slice(0, 32);
+  }
+}
+
 function autoStartSoloFromUrl() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("mode") !== "solo" && params.get("solo") !== "1") return;
   if (state.game) return;
+  applySoloUrlOverrides(params);
+  updateSetupSummary();
   setTimeout(() => {
     if (!state.game) createGame(true);
   }, 250);
