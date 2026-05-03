@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="Pin the Planet is a live multiplayer geography party game for friends, pub quizzes and remote teams." />
+  <meta property="og:title" content="Pin the Planet" />
+  <meta property="og:description" content="Create a room, send a link, pin the place and compare the carnage." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="favicon.svg" />
+  <title>Pin the Planet</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="Ei Ni init zi Gi Nr Ui Xi Hi capture calculateEventProperties tn register register_once register_for_session unregister unregister_for_session an getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync ln identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty nn Qi createPersonProfile setInternalOrTestUser sn qi cn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Ji debug Fr rn getPageViewId captureTraceFeedback captureTraceMetric Bi".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_rjdbC2ukVS29aznCpEVwYQ72T7qdvjgd9HLMe3GrPmfG', {
+        api_host: 'https://eu.i.posthog.com',
+        defaults: '2026-01-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <a class="brand brand-link" href="/" aria-label="Pin the Planet home">
+        <div class="logo">🌍</div>
+        <div>
+          <h1>Pin the Planet</h1>
+          <p class="small muted">Multiplayer map guessing game</p>
+        </div>
+      </a>
+      <div class="row">
+        <span id="connectionStatus" class="pill">Checking setup</span>
+        <button id="leaveBtn" class="secondary hidden">Leave game</button>
+      </div>
+    </header>
+
+    <main id="homeScreen" class="screen landing-screen">
+      <div class="landing-shell">
+        <section id="hostSetupPanel" class="landing-hero card">
+          <div class="hero-kicker">
+            <span>✨ No account</span>
+            <span>🌍 Live multiplayer</span>
+            <span>🍻 Pub-quiz ready</span>
+          </div>
+
+          <div class="hero-copy">
+            <h2>Drop the pin.<br><span>Win the night.</span></h2>
+            <p>A live geography party game for mates, pub quizzes and remote teams. Create a room, send a link, then compare the carnage.</p>
+          </div>
+
+          <div id="firebaseWarning" class="setup-warning hidden">
+            <strong>Firebase not configured yet.</strong>
+            <p class="small" style="margin-top: 4px;">Paste your Firebase config into the file where marked. Without it, online rooms will not sync across devices.</p>
+          </div>
+
+          <div class="host-name-quick field">
+            <label for="hostName">Your name</label>
+            <input id="hostName" value="Quiz host" autocomplete="name" />
+          </div>
+
+          <div class="hero-actions">
+            <button id="createGameBtn" type="button" class="hero-primary">🚀 Create a room</button>
+            <button id="playSoloBtn" type="button" class="hero-secondary">⚡ Play solo</button>
+          </div>
+
+          <div class="quick-links">
+            <button id="showJoinPanelBtn" type="button">🔗 Got a code?</button>
+            <span></span>
+            <button id="customiseGameBtn" type="button">⚙️ Customise game</button>
+          </div>
+
+<div class="setup-summary-card">
+            <div class="summary-header">
+              <div>
+                <p class="tiny muted">Current setup</p>
+                <h3 id="setupSummaryTitle">Game setup</h3>
+              </div>
+              <span id="setupDurationPill" class="summary-pill">~7 min</span>
+            </div>
+            <p id="setupSummaryText" class="small muted">10 rounds of world cities, 30 seconds per round. Expect mixed city selection, a clean no-label map, brutal roasts and distance scoring.</p>
+          </div>
+
+          <div id="settingsDrawer" class="settings-drawer hidden">
+            <div class="settings-topline">
+              <h3>Customise game</h3>
+              <button id="closeSettingsBtn" type="button" class="ghost-button">Done</button>
+            </div>
+
+            <div class="settings-grid">
+              <div class="field">
+                <label for="roundCount">Number of rounds</label>
+                <input id="roundCount" type="number" min="1" max="20" value="10" />
+              </div>
+              <div class="field">
+                <label for="roundDuration">Time limit per round</label>
+                <select id="roundDuration">
+                  <option value="10">10 seconds</option>
+                  <option value="20">20 seconds</option>
+                  <option value="30" selected>30 seconds</option>
+                  <option value="40">40 seconds</option>
+                  <option value="50">50 seconds</option>
+                  <option value="60">60 seconds</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="practiceRound">Practice round</label>
+                <select id="practiceRound">
+                  <option value="off" selected>No practice</option>
+                  <option value="on">Add a practice round first</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="questionType">Question type</label>
+                <select id="questionType">
+                  <option value="city" selected>World cities</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="cityDifficulty">City difficulty</label>
+                <select id="cityDifficulty">
+                  <option value="familiar">Familiar</option>
+                  <option value="mixed" selected>Mixed</option>
+                  <option value="chaos">Chaos mode</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="mapMode">Map help</label>
+                <select id="mapMode">
+                  <option value="hardcore" selected>Hardcore - no borders</option>
+                  <option value="outlines">Country outlines</option>
+                  <option value="labels">Easy labels</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="toneMode">Tone</label>
+                <select id="toneMode">
+                  <option value="lads" selected>Lads mode</option>
+                  <option value="friendly">Friendly</option>
+                  <option value="school">School-safe</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="scoringMode">Scoring</label>
+                <select id="scoringMode">
+                  <option value="distance" selected>Distance points</option>
+                  <option value="pub">Pub quiz result points</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="pack-section">
+              <p class="tiny muted">Question packs</p>
+              <div class="pack-grid">
+                <button type="button" class="pack-card active">🌍 <span>World cities</span></button>
+                <button type="button" class="pack-card" disabled>🇪🇺 <span>EU capitals</span><em>Soon</em></button>
+                <button type="button" class="pack-card" disabled>🇬🇧 <span>UK towns</span><em>Soon</em></button>
+                <button type="button" class="pack-card" disabled>⚽️ <span>Football grounds</span><em>Soon</em></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="joinPanel" class="join-panel card">
+          <div class="join-invite">
+            <div class="join-icon">📍</div>
+            <div>
+              <p class="tiny muted">Joining a room</p>
+              <h2>Got a code?</h2>
+            </div>
+          </div>
+
+          <p class="muted">Enter your name and room code. If you arrived from a shared link, the code is already filled in.</p>
+
+          <div class="field">
+            <label for="playerName">Your name</label>
+            <input id="playerName" placeholder="eg Tom" autocomplete="name" />
+          </div>
+
+          <div class="field">
+            <label for="joinCode">Room code</label>
+            <input id="joinCode" placeholder="eg K7Q9" maxlength="6" style="text-transform: uppercase" />
+          </div>
+
+          <button id="joinGameBtn" class="hero-primary">Join room</button>
+
+          <div id="hostOwnGroupCard" class="host-own-group-card hidden">
+            <p class="small muted" style="margin-bottom: 8px;">Want to run your own game instead?</p>
+            <button id="showHostSetupBtn" class="hero-secondary">Host your own game</button>
+            <button id="joinAsNewPlayerBtn" type="button" class="ghost-button" style="width:100%; margin-top:8px;">Join as a different player on this browser</button>
+          </div>
+
+          <div class="how-it-works-card">
+            <h3>How it works</h3>
+            <p class="small muted">The host starts a round and plays as well. Everyone has the chosen time limit to place one pin. Practice rounds do not count.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <main id="gameScreen" class="screen hidden">
+      <div class="game-grid">
+        <aside class="card stack">
+          <div class="row between">
+            <div>
+              <p id="roomCodeLabel" class="small muted">Room code</p>
+              <div id="roomCodeDisplay" class="room-code">----</div>
+            </div>
+            <button id="copyLinkBtn" class="secondary">Copy link</button>
+          </div>
+
+          <div id="hostControls" class="stack hidden">
+            <div class="card stack host-card">
+              <div>
+                <h3 id="hostControlsTitle">Host controls</h3>
+                <p id="roundInfo" class="small muted">Round 0 of 0</p>
+              </div>
+
+              <button id="startRoundBtn" class="success host-primary-action">Start game</button>
+              <button id="revealBtn" class="warning host-primary-action hidden">Reveal answer</button>
+              <button id="nextRoundBtn" class="success host-primary-action hidden">Next round</button>
+
+              <div id="gameCompleteHost" class="game-complete hidden">
+                <strong>🏁 Game complete</strong>
+                <p class="small muted">Final leaderboard is ready. Time for excuses.</p>
+                <div class="host-complete-actions">
+                  <button id="hostOwnGroupFinalBtn" class="success small-action">Host this with your own group</button>
+                  <button id="newGameSamePlayersBtn" class="success small-action">Play again with same group</button>
+                  <button id="copyResultsBtn" class="secondary small-action">Copy results</button>
+                </div>
+              </div>
+
+              <div class="host-secondary-actions">
+                <button id="restartRoundBtn" class="secondary small-action hidden">Restart round</button>
+                <button id="resetGameBtn" class="secondary small-action danger-outline">Reset room</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="roundStatusPanel" class="card status-card stack hidden">
+            <div class="row between">
+              <h3>Status</h3>
+              <span id="roundStatusPill" class="pill">Waiting</span>
+            </div>
+            <div>
+              <p id="roundStatusMain" class="status-main">Waiting for players</p>
+              <p id="roundStatusSub" class="small muted">The host will start the game shortly.</p>
+            </div>
+            <div class="guess-progress">
+              <div id="guessProgressBar" class="guess-progress-bar"></div>
+            </div>
+          </div>
+
+          <div id="leaderboardPanel" class="card leaderboard-card stack hidden"></div>
+
+          <div id="playersSection" class="stack">
+            <div class="row between">
+              <h3>Players joined</h3>
+              <span id="playerCount" class="pill">0 joined</span>
+            </div>
+            <div id="playersList" class="players"></div>
+          </div>
+
+          <div id="roundResultsSection" class="stack hidden">
+            <div class="row between">
+              <h3 id="roundResultsTitle">Round banter</h3>
+              <span id="submittedCount" class="pill">0 guesses</span>
+            </div>
+            <div id="resultsList" class="stack"></div>
+          </div>
+        </aside>
+
+        <section class="card map-card">
+          <div class="map-overlay">
+            <div id="countdownDisplay" class="timer hidden">20</div>
+            <p id="roundState" class="small muted">Waiting for host</p>
+            <div id="targetName" class="target">Join the room</div>
+            <p id="playerHint" class="small muted" style="margin-top: 6px;">Click the map to place your guess.</p>
+            <div id="allGuessesBanner" class="ready-banner hidden">All guesses are in - reveal time.</div>
+          </div>
+          <div id="personalResultCard" class="personal-result-card hidden"></div>
+          <div id="roundSpotlightOverlay" class="round-spotlight-overlay hidden"></div>
+          <div id="finalLeaderboardOverlay" class="final-map-overlay hidden"></div>
+          <div id="map"></div>
+        </section>
+      </div>
+
+      <div id="mobileHostBar" class="mobile-host-bar hidden">
+        <div class="mobile-host-meta">
+          <span id="mobileHostRound">Round 0/0</span>
+          <span id="mobileHostStatus">Waiting</span>
+        </div>
+        <div class="mobile-host-actions">
+          <button id="mobileStartBtn" class="success">Start</button>
+          <button id="mobileRevealBtn" class="warning hidden">Reveal</button>
+          <button id="mobileNextBtn" class="success hidden">Next</button>
+          <button id="mobileNewGameBtn" class="success hidden">Play again with same group</button>
+          <button id="mobileCopyResultsBtn" class="secondary hidden">Copy scores</button>
+          <button id="mobileCopyBtn" class="secondary">Copy link</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="./app.js"></script>
+  <div id="loadingOverlay" class="loading-overlay hidden" aria-live="polite">
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <h3 id="loadingTitle">Loading</h3>
+      <p id="loadingText" class="muted">Please wait a moment.</p>
+    </div>
+  </div>
+</body>
+</html>
