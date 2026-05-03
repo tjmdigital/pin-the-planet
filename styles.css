@@ -3217,3 +3217,30 @@ body.single-player-game #roomCodeLabel {
 body.round-revealed-state .answer-pin {
   filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.45));
 }
+
+/* v71 spotlight - tied/joint round layout */
+.round-spotlight-card.joint .round-spotlight-tied-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  flex: 1;
+}
+.round-spotlight-tied-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+}
+.round-spotlight-tied-player .round-spotlight-avatar.small {
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+}
+.round-spotlight-tied-player .round-spotlight-name {
+  font-weight: 700;
+  font-size: 14px;
+}

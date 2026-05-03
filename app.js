@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v70-presence-reconnect";
+const PTP_APP_VERSION = "v71-country-scoring-tail";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1077,8 +1077,16 @@ function pointsForCountryDistance(distanceKm, inside, hasGuess = true) {
   if (!hasGuess) return 0;
   if (inside) return 1000;
   if (!Number.isFinite(distanceKm)) return 0;
-  const base = Math.round(1000 * Math.exp(-distanceKm / 1200));
-  return Math.max(MIN_SUBMITTED_SCORE, base);
+  // Two-part curve so wrong-continent guesses still differentiate:
+  // - exp curve dominates for near-border misses (1500km and below)
+  // - linear tail keeps the long tail discriminating (11,000km != 15,000km)
+  // No 50-point floor in country mode - that was a city-mode "you tried"
+  // courtesy and was making every catastrophic miss read as identical.
+  const expPart = 1000 * Math.exp(-distanceKm / 1200);
+  const tailPart = Math.max(0, 60 * (1 - distanceKm / 20000));
+  // Cap outside-the-border score below 1000 so being inside is always a
+  // strict win, even from one metre over the border.
+  return Math.max(0, Math.min(999, Math.round(expPart + tailPart)));
 }
 
 function scoreGuessForQuestion(guess, question) {
@@ -2086,8 +2094,60 @@ function renderRoundSpotlight() {
     overlay.innerHTML = "";
     return;
   }
+
+  const question = currentQuestion();
+  const isCountry = question?.type === "country";
+  const everyoneInside = isCountry && rows.length > 1 && rows.every(r => r.inside);
+  const allTiedTop = rows.length > 1 && rows.every(r => r.points === best.points);
+  const allTiedBottom = rows.length > 1 && rows.every(r => r.points === worst.points) && best.points === worst.points;
+  const isJointRound = everyoneInside || allTiedTop || allTiedBottom;
   const isBestYou = best.player.id === state.playerId;
   const isWorstYou = worst.player.id === state.playerId && worst.player.id !== best.player.id;
+  const meRow = rows.find(r => r.player.id === state.playerId) || null;
+  const youInJoint = isJointRound && Boolean(meRow);
+
+  // Joint round: everyone tied. Render one shared celebration card so we
+  // don't unfairly "roast" a player who scored exactly the same as the
+  // best guess. Especially important in country mode where multiple
+  // players can land inside the same polygon and all earn 1000.
+  if (isJointRound) {
+    let kicker;
+    let verdict;
+    if (everyoneInside) {
+      kicker = "🎯 All inside the country";
+      verdict = rows.length === 2
+        ? "Both pins landed inside. Joint full marks."
+        : `All ${rows.length} pins inside the country. Honours even.`;
+    } else if (allTiedTop && best.points >= 950) {
+      kicker = "🎯 Joint best";
+      verdict = "Everyone tied at the top. No roast this round.";
+    } else if (allTiedBottom && worst.points <= 60) {
+      kicker = "🌍 Everyone miles off";
+      verdict = "Same continent? Different planet. No single roast - it's a group effort.";
+    } else {
+      kicker = "🤝 Round tied";
+      verdict = "Everyone scored the same. Round called even.";
+    }
+    const namesHtml = rows.map(r => `
+      <span class="round-spotlight-tied-player">
+        <span class="round-spotlight-avatar small">${r.player.avatar || "🌍"}</span>
+        <span class="round-spotlight-name">${escapeHtml(r.player.name)}</span>
+      </span>
+    `).join("");
+    const html = `
+      <div class="round-spotlight-card best joint ${youInJoint ? "is-you" : ""}">
+        <div class="round-spotlight-kicker">${kicker} ${youInJoint ? '<span class="spotlight-you-pill">You</span>' : ""}</div>
+        <div class="round-spotlight-head">
+          <div class="round-spotlight-tied-list">${namesHtml}</div>
+          <div class="round-spotlight-points">+${best.points || 0}</div>
+        </div>
+        <div class="round-spotlight-verdict">${escapeHtml(verdict)}</div>
+      </div>
+    `;
+    setHtmlIfChanged(overlay, html, "roundSpotlightOverlay");
+    overlay.classList.remove("hidden");
+    return;
+  }
 
   const bestHtml = `
     <div class="round-spotlight-card best ${isBestYou ? "is-you" : ""}">
@@ -2096,11 +2156,11 @@ function renderRoundSpotlight() {
         <div class="round-spotlight-avatar">${best.player.avatar || "🌍"}</div>
         <div>
           <div class="round-spotlight-name">${escapeHtml(best.player.name)}</div>
-          <div class="round-spotlight-meta">${distanceTextForRow(best, currentQuestion())}</div>
+          <div class="round-spotlight-meta">${distanceTextForRow(best, question)}</div>
         </div>
         <div class="round-spotlight-points">+${best.points || 0}</div>
       </div>
-      <div class="round-spotlight-verdict">${escapeHtml(bestSpotlightForRow(best, currentQuestion()))}</div>
+      <div class="round-spotlight-verdict">${escapeHtml(bestSpotlightForRow(best, question))}</div>
     </div>
   `;
 
@@ -2113,11 +2173,11 @@ function renderRoundSpotlight() {
           <div class="round-spotlight-avatar">${worst.player.avatar || "🌍"}</div>
           <div>
             <div class="round-spotlight-name">${escapeHtml(worst.player.name)}</div>
-            <div class="round-spotlight-meta">${distanceTextForRow(worst, currentQuestion())}</div>
+            <div class="round-spotlight-meta">${distanceTextForRow(worst, question)}</div>
           </div>
           <div class="round-spotlight-points">+${worst.points || 0}</div>
         </div>
-        <div class="round-spotlight-verdict">${escapeHtml(worstSpotlightForRow(worst, currentQuestion()))}</div>
+        <div class="round-spotlight-verdict">${escapeHtml(worstSpotlightForRow(worst, question))}</div>
       </div>
     `;
   }
