@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v73-unique-avatars";
+const PTP_APP_VERSION = "v74-overseas-trim-and-ui";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -571,10 +571,19 @@ function countryVerdictCopy(row) {
     "Wrong country, but the right general mood."
   ], km);
   if (km < 4000) return randomFrom([
-    "Wrong region. Wrong vibes. Bold attempt.",
-    "That’s a different continent and you know it.",
+    "Wrong region. Bold attempt.",
+    "Right ballpark, wrong country.",
     "Geography by guesswork.",
-    "A pin with ambition and nothing else."
+    "A pin with ambition and nothing else.",
+    "Way off, but the continent gods may forgive you.",
+    "Confidently far. Confidently wrong."
+  ], km);
+  if (km < 8000) return randomFrom([
+    "Wrong continent energy.",
+    "That pin needs a passport.",
+    "Spectacularly off-region.",
+    "A pin with no fixed abode.",
+    "Geography by horoscope."
   ], km);
   return randomFrom([
     "Wrong hemisphere. Iconic.",
@@ -2994,25 +3003,43 @@ function buildResultsText() {
   if (currentRows.length) {
     const best = currentRows[0];
     const worst = currentRows[currentRows.length - 1];
-    const bestQuestion = typeof locationDisplayName === "function" ? locationDisplayName(best.question || currentQuestion()) : (best.question?.name || currentQuestion()?.name || "the answer");
+    const lastQuestion = currentQuestion();
+    const isCountryRound = lastQuestion?.type === "country";
+    const everyoneInside = isCountryRound && currentRows.length > 1 && currentRows.every(r => r.inside);
+    const allTied = currentRows.length > 1 && currentRows.every(r => r.points === best.points);
+
     lines.push("");
-    const isCountryRound = (best.question || currentQuestion())?.type === "country";
-    const bestSuffix = isCountryRound
-      ? (best.inside ? "inside the country" : `${Math.round(best.distance).toLocaleString()}km from the border`)
-      : `${Math.round(best.distance).toLocaleString()}km from ${bestQuestion}`;
-    lines.push(`Best pin: ${best.player.name} was ${bestSuffix}.`);
+    if (everyoneInside) {
+      lines.push(`Final round: everyone landed inside the country. Joint full marks.`);
+    } else if (allTied) {
+      lines.push(`Final round: everyone tied at ${best.points}.`);
+    } else {
+      const bestSuffix = isCountryRound
+        ? (best.inside ? "inside the country" : `${Math.round(best.distance).toLocaleString()}km from the border`)
+        : `${Math.round(best.distance).toLocaleString()}km from ${locationDisplayName(lastQuestion) || "the answer"}`;
+      lines.push(`Final round best: ${best.player.name} - ${bestSuffix}.`);
 
-    if (worst && worst.player.id !== best.player.id) {
-      const worstQuestion = typeof locationDisplayName === "function" ? locationDisplayName(worst.question || currentQuestion()) : (worst.question?.name || currentQuestion()?.name || "the answer");
-      const worstSuffix = isCountryRound
-        ? (worst.inside ? "inside the country" : `${Math.round(worst.distance).toLocaleString()}km from the border`)
-        : `${Math.round(worst.distance).toLocaleString()}km from ${worstQuestion}`;
-      lines.push(`Worst pin: ${worst.player.name} was ${worstSuffix}.`);
-    }
+      if (worst && worst.player.id !== best.player.id) {
+        const worstSuffix = isCountryRound
+          ? (worst.inside ? "inside the country" : `${Math.round(worst.distance).toLocaleString()}km from the border`)
+          : `${Math.round(worst.distance).toLocaleString()}km from ${locationDisplayName(lastQuestion) || "the answer"}`;
+        lines.push(`Final round worst: ${worst.player.name} - ${worstSuffix}.`);
+      }
 
-    if (currentRows.length > 1 && Number.isFinite(worst.distance)) {
-      const spread = Math.round((worst.distance - best.distance)).toLocaleString();
-      lines.push(`Most divisive: ${spread}km between best and worst.`);
+      // "Most divisive" is only meaningful when the spread is non-trivial.
+      // When the best is inside (distance 0) and the worst is e.g. 1,400km
+      // out, "1,400km between best and worst" reads as a numeric oddity, so
+      // skip it for that case.
+      if (
+        currentRows.length > 1 &&
+        Number.isFinite(worst.distance) &&
+        Number.isFinite(best.distance) &&
+        !best.inside &&
+        worst.distance - best.distance >= 200
+      ) {
+        const spread = Math.round((worst.distance - best.distance)).toLocaleString();
+        lines.push(`Spread: ${spread}km between best and worst pins.`);
+      }
     }
   }
 
@@ -3088,6 +3115,18 @@ function updateSetupSummary() {
   const text = $("setupSummaryText");
   const duration = $("setupDurationPill");
   if (!title || !text) return;
+
+  // Hide the City difficulty field when Countries is selected - it has
+  // no effect on country-mode rounds.
+  const isCountrySelected = $("questionType")?.value === "country";
+  const diffField = $("cityDifficultyField");
+  if (diffField) diffField.classList.toggle("hidden", isCountrySelected);
+
+  // Keep the Question packs tiles in sync with the questionType dropdown.
+  document.querySelectorAll(".pack-card[data-pack-type]").forEach(btn => {
+    const packType = btn.getAttribute("data-pack-type");
+    btn.classList.toggle("active", packType === ($("questionType")?.value || "city"));
+  });
 
   const rounds = clamp(Number($("roundCount")?.value || 10), 1, 20);
   const timerSeconds = clamp(Number($("roundDuration")?.value || 30), 10, 60);
@@ -3234,6 +3273,20 @@ $("playSoloBtn").addEventListener("click", () => {
   // Belt-and-braces: ensure the click can never end up creating a
   // multiplayer room. We always pass true.
   createGame(true);
+});
+
+// Question pack tiles drive the questionType dropdown so the two stay
+// in sync. Disabled "Soon" tiles are ignored.
+document.querySelectorAll(".pack-card[data-pack-type]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (btn.disabled) return;
+    const packType = btn.getAttribute("data-pack-type");
+    const select = $("questionType");
+    if (select && [...select.options].some(opt => opt.value === packType)) {
+      select.value = packType;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  });
 });
 warmCityPool(questionCountForOptions(getSetupOptions()), getSetupOptions()).catch(() => {});
 $("roundDuration").addEventListener("change", () => {});
