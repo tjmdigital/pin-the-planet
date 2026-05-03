@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v69-solo-setup-fix";
+const PTP_APP_VERSION = "v70-presence-reconnect";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1427,6 +1427,47 @@ function enterGame(code, playerId, playerName, isHost) {
   $("hostControls").classList.toggle("hidden", !isHost);
   showGameScreen();
   subscribeToGame();
+  attachPresenceWatcher();
+}
+
+// Keep this player's online flag truthful across iOS/Safari tab
+// suspensions and brief network drops. The previous code relied on the
+// initial onDisconnect, which fires when iOS pauses the WebSocket (e.g.
+// when the host switches to Messages to share the join link). Once
+// fired, nothing was re-setting online to true on return, so the host
+// looked permanently offline to other players.
+function attachPresenceWatcher() {
+  if (!db || !state.gameCode || !state.playerId) return;
+  if (state.presenceAttached) return;
+  state.presenceAttached = true;
+
+  const onlineRef = ref(db, `games/${state.gameCode}/players/${state.playerId}/online`);
+  const connectedRef = ref(db, ".info/connected");
+
+  // Whenever the Firebase socket reports we're connected, make sure our
+  // own player record is online and the next disconnect will mark us
+  // offline again. onDisconnect must be re-armed after every reconnect.
+  onValue(connectedRef, (snap) => {
+    if (snap.val() !== true) return;
+    if (!state.gameCode || !state.playerId) return;
+    onDisconnect(onlineRef).set(false);
+    set(onlineRef, true).catch(() => {});
+  });
+
+  // iOS Safari often delivers visibilitychange before the WebSocket
+  // recovers; nudging online here makes the UI catch up quickly when
+  // the host returns from sharing the join link.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    if (!state.gameCode || !state.playerId) return;
+    set(ref(db, `games/${state.gameCode}/players/${state.playerId}/online`), true).catch(() => {});
+  });
+
+  // Same nudge when the tab is restored from the bfcache.
+  window.addEventListener("pageshow", () => {
+    if (!state.gameCode || !state.playerId) return;
+    set(ref(db, `games/${state.gameCode}/players/${state.playerId}/online`), true).catch(() => {});
+  });
 }
 
 function subscribeToGame() {
