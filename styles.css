@@ -3244,3 +3244,21 @@ body.round-revealed-state .answer-pin {
   font-weight: 700;
   font-size: 14px;
 }
+
+/* v75 - tidy the final-board scrollbar so it matches the dark theme */
+.final-board {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+.final-board::-webkit-scrollbar { width: 8px; height: 8px; }
+.final-board::-webkit-scrollbar-track { background: transparent; }
+.final-board::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.16);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.final-board::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.28);
+  background-clip: padding-box;
+}

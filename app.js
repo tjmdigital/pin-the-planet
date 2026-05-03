@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v74-overseas-trim-and-ui";
+const PTP_APP_VERSION = "v75-reposition-ghosts-scrollbar";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1622,13 +1622,14 @@ async function maybeAutoCloseRound() {
   if (!state.isHost || !state.game?.started || !state.game.acceptingGuesses || state.game.revealed) return;
 
   const left = secondsLeft();
-  // In solo mode, never auto-close just because the one player has a pin -
-  // the player must be able to keep repositioning until time runs out or
-  // they hit Score round. Multiplayer keeps the all-guessed close.
-  const shouldCloseForAllGuessed = !isSoloGame() && allPlayersHaveGuessed();
+  // Don't auto-close on all-guessed any more, in either mode. Players
+  // expect to be able to keep repositioning their pin until either the
+  // timer runs out or the host clicks Reveal. The reveal button is
+  // already enabled by canReveal as soon as everyone has guessed, so
+  // the host always has the option to end the round early.
   const shouldCloseForTime = left === 0 || hasRoundTimerEnded();
 
-  if (!shouldCloseForAllGuessed && !shouldCloseForTime) return;
+  if (!shouldCloseForTime) return;
 
   const key = currentRoundKey();
   if (state.autoClosingRoundKey === key) return;
@@ -1637,7 +1638,7 @@ async function maybeAutoCloseRound() {
   await update(ref(db, `games/${state.gameCode}`), {
     acceptingGuesses: false,
     roundClosedAt: Date.now(),
-    roundClosedReason: shouldCloseForAllGuessed ? "all-guessed" : "time-up"
+    roundClosedReason: "time-up"
   });
 }
 
@@ -1749,7 +1750,7 @@ function renderGame() {
     // In solo mode the player can keep repositioning, so the "everyone is
     // in" banner would be misleading. Skip it entirely for solo.
     if (!isSolo && (allIn || roundClosedByAll)) {
-      $("allGuessesBanner").textContent = state.isHost ? "✅ All guesses are in - reveal time." : "✅ All guesses are in - waiting for host.";
+      $("allGuessesBanner").textContent = state.isHost ? "✅ All in - reveal whenever (pins still movable)." : "✅ All in - host can reveal. You can still move your pin.";
       $("allGuessesBanner").classList.remove("hidden");
     }
   }
@@ -1956,7 +1957,7 @@ function renderRoundStatus() {
   } else {
     $("roundStatusMain").textContent = `${submitted}/${total} guessed`;
     $("roundStatusSub").textContent = submitted === total
-      ? (state.isHost ? "Everyone is in. Reveal the answer." : "Everyone is in. Waiting for the answer reveal.")
+      ? (state.isHost ? "Everyone is in. Reveal when ready (pins still movable)." : "Everyone is in. Host can reveal anytime. You can still move your pin.")
       : "Waiting for the remaining guesses.";
   }
 }
@@ -2260,7 +2261,7 @@ function renderFinalMapOverlay() {
 
   const rows = roundRows();
   const roundPointsByPlayer = Object.fromEntries(rows.map(row => [row.player.id, row.points || 0]));
-  const byTotal = playersArray().sort((a, b) => (b.total || 0) - (a.total || 0));
+  const byTotal = displayablePlayers().sort((a, b) => (b.total || 0) - (a.total || 0));
   const showPubPoints = state.game.scoringMode === "pub";
   const isSolo = isSoloGame();
 
@@ -2374,7 +2375,7 @@ function renderLeaderboard() {
 
   const isFinal = isFinalScoredRound();
   const rows = roundRows();
-  const byTotal = playersArray().sort((a, b) => (b.total || 0) - (a.total || 0));
+  const byTotal = displayablePlayers().sort((a, b) => (b.total || 0) - (a.total || 0));
   const panel = $("leaderboardPanel");
   const isSolo = isSoloGame();
   panel.classList.remove("hidden");
@@ -2953,6 +2954,14 @@ function recordSoloResultIfNeeded() {
 
 function finalSortedPlayers() {
   return playersArray().sort((a, b) => (b.total || 0) - (a.total || 0));
+}
+
+// Players safe to render in any user-facing leaderboard. Drops entries
+// with no real name (which would otherwise render as "🌍 Player") -
+// these come from stale Firebase records left by a player who left
+// mid-game, or partial joins that didn't complete.
+function displayablePlayers(players = playersArray()) {
+  return players.filter(p => p && String(p.name || "").trim());
 }
 
 // Players safe to surface in copied/displayed final results: must have a
