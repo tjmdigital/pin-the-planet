@@ -1,0 +1,1721 @@
+[
+  {
+    "name": "London, United Kingdom",
+    "displayName": "London",
+    "sourceName": "London",
+    "country": "United Kingdom",
+    "lat": 51.5072,
+    "lng": -0.1276,
+    "tier": "familiar"
+  },
+  {
+    "name": "Manchester, United Kingdom",
+    "displayName": "Manchester",
+    "sourceName": "Manchester",
+    "country": "United Kingdom",
+    "lat": 53.4808,
+    "lng": -2.2426,
+    "tier": "familiar"
+  },
+  {
+    "name": "Liverpool, United Kingdom",
+    "displayName": "Liverpool",
+    "sourceName": "Liverpool",
+    "country": "United Kingdom",
+    "lat": 53.4084,
+    "lng": -2.9916,
+    "tier": "familiar"
+  },
+  {
+    "name": "Birmingham, United Kingdom",
+    "displayName": "Birmingham",
+    "sourceName": "Birmingham",
+    "country": "United Kingdom",
+    "lat": 52.4862,
+    "lng": -1.8904,
+    "tier": "familiar"
+  },
+  {
+    "name": "Leeds, United Kingdom",
+    "displayName": "Leeds",
+    "sourceName": "Leeds",
+    "country": "United Kingdom",
+    "lat": 53.8008,
+    "lng": -1.5491,
+    "tier": "familiar"
+  },
+  {
+    "name": "Sheffield, United Kingdom",
+    "displayName": "Sheffield",
+    "sourceName": "Sheffield",
+    "country": "United Kingdom",
+    "lat": 53.3811,
+    "lng": -1.4701,
+    "tier": "familiar"
+  },
+  {
+    "name": "Newcastle upon Tyne, United Kingdom",
+    "displayName": "Newcastle upon Tyne",
+    "sourceName": "Newcastle upon Tyne",
+    "country": "United Kingdom",
+    "lat": 54.9783,
+    "lng": -1.6178,
+    "tier": "familiar"
+  },
+  {
+    "name": "Nottingham, United Kingdom",
+    "displayName": "Nottingham",
+    "sourceName": "Nottingham",
+    "country": "United Kingdom",
+    "lat": 52.9548,
+    "lng": -1.1581,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bristol, United Kingdom",
+    "displayName": "Bristol",
+    "sourceName": "Bristol",
+    "country": "United Kingdom",
+    "lat": 51.4545,
+    "lng": -2.5879,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bath, United Kingdom",
+    "displayName": "Bath",
+    "sourceName": "Bath",
+    "country": "United Kingdom",
+    "lat": 51.3811,
+    "lng": -2.359,
+    "tier": "familiar"
+  },
+  {
+    "name": "Brighton, United Kingdom",
+    "displayName": "Brighton",
+    "sourceName": "Brighton",
+    "country": "United Kingdom",
+    "lat": 50.8225,
+    "lng": -0.1372,
+    "tier": "familiar"
+  },
+  {
+    "name": "Southampton, United Kingdom",
+    "displayName": "Southampton",
+    "sourceName": "Southampton",
+    "country": "United Kingdom",
+    "lat": 50.9097,
+    "lng": -1.4044,
+    "tier": "familiar"
+  },
+  {
+    "name": "Portsmouth, United Kingdom",
+    "displayName": "Portsmouth",
+    "sourceName": "Portsmouth",
+    "country": "United Kingdom",
+    "lat": 50.8198,
+    "lng": -1.088,
+    "tier": "familiar"
+  },
+  {
+    "name": "Plymouth, United Kingdom",
+    "displayName": "Plymouth",
+    "sourceName": "Plymouth",
+    "country": "United Kingdom",
+    "lat": 50.3755,
+    "lng": -4.1427,
+    "tier": "familiar"
+  },
+  {
+    "name": "Exeter, United Kingdom",
+    "displayName": "Exeter",
+    "sourceName": "Exeter",
+    "country": "United Kingdom",
+    "lat": 50.7184,
+    "lng": -3.5339,
+    "tier": "familiar"
+  },
+  {
+    "name": "Norwich, United Kingdom",
+    "displayName": "Norwich",
+    "sourceName": "Norwich",
+    "country": "United Kingdom",
+    "lat": 52.6309,
+    "lng": 1.2974,
+    "tier": "familiar"
+  },
+  {
+    "name": "York, United Kingdom",
+    "displayName": "York",
+    "sourceName": "York",
+    "country": "United Kingdom",
+    "lat": 53.959,
+    "lng": -1.0815,
+    "tier": "familiar"
+  },
+  {
+    "name": "Oxford, United Kingdom",
+    "displayName": "Oxford",
+    "sourceName": "Oxford",
+    "country": "United Kingdom",
+    "lat": 51.752,
+    "lng": -1.2577,
+    "tier": "familiar"
+  },
+  {
+    "name": "Cambridge, United Kingdom",
+    "displayName": "Cambridge",
+    "sourceName": "Cambridge",
+    "country": "United Kingdom",
+    "lat": 52.2053,
+    "lng": 0.1218,
+    "tier": "familiar"
+  },
+  {
+    "name": "Canterbury, United Kingdom",
+    "displayName": "Canterbury",
+    "sourceName": "Canterbury",
+    "country": "United Kingdom",
+    "lat": 51.2802,
+    "lng": 1.0789,
+    "tier": "familiar"
+  },
+  {
+    "name": "Edinburgh, United Kingdom",
+    "displayName": "Edinburgh",
+    "sourceName": "Edinburgh",
+    "country": "United Kingdom",
+    "lat": 55.9533,
+    "lng": -3.1883,
+    "tier": "familiar"
+  },
+  {
+    "name": "Glasgow, United Kingdom",
+    "displayName": "Glasgow",
+    "sourceName": "Glasgow",
+    "country": "United Kingdom",
+    "lat": 55.8642,
+    "lng": -4.2518,
+    "tier": "familiar"
+  },
+  {
+    "name": "Aberdeen, United Kingdom",
+    "displayName": "Aberdeen",
+    "sourceName": "Aberdeen",
+    "country": "United Kingdom",
+    "lat": 57.1497,
+    "lng": -2.0943,
+    "tier": "familiar"
+  },
+  {
+    "name": "Cardiff, United Kingdom",
+    "displayName": "Cardiff",
+    "sourceName": "Cardiff",
+    "country": "United Kingdom",
+    "lat": 51.4816,
+    "lng": -3.1791,
+    "tier": "familiar"
+  },
+  {
+    "name": "Belfast, United Kingdom",
+    "displayName": "Belfast",
+    "sourceName": "Belfast",
+    "country": "United Kingdom",
+    "lat": 54.5973,
+    "lng": -5.9301,
+    "tier": "familiar"
+  },
+  {
+    "name": "Dublin, Ireland",
+    "displayName": "Dublin",
+    "sourceName": "Dublin",
+    "country": "Ireland",
+    "lat": 53.3498,
+    "lng": -6.2603,
+    "tier": "familiar"
+  },
+  {
+    "name": "Cork, Ireland",
+    "displayName": "Cork",
+    "sourceName": "Cork",
+    "country": "Ireland",
+    "lat": 51.8985,
+    "lng": -8.4756,
+    "tier": "familiar"
+  },
+  {
+    "name": "Galway, Ireland",
+    "displayName": "Galway",
+    "sourceName": "Galway",
+    "country": "Ireland",
+    "lat": 53.2707,
+    "lng": -9.0568,
+    "tier": "familiar"
+  },
+  {
+    "name": "New York City, United States",
+    "displayName": "New York City",
+    "sourceName": "New York City",
+    "country": "United States",
+    "lat": 40.7128,
+    "lng": -74.006,
+    "tier": "familiar"
+  },
+  {
+    "name": "Los Angeles, United States",
+    "displayName": "Los Angeles",
+    "sourceName": "Los Angeles",
+    "country": "United States",
+    "lat": 34.0522,
+    "lng": -118.2437,
+    "tier": "familiar"
+  },
+  {
+    "name": "Chicago, United States",
+    "displayName": "Chicago",
+    "sourceName": "Chicago",
+    "country": "United States",
+    "lat": 41.8781,
+    "lng": -87.6298,
+    "tier": "familiar"
+  },
+  {
+    "name": "San Francisco, United States",
+    "displayName": "San Francisco",
+    "sourceName": "San Francisco",
+    "country": "United States",
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "tier": "familiar"
+  },
+  {
+    "name": "Las Vegas, United States",
+    "displayName": "Las Vegas",
+    "sourceName": "Las Vegas",
+    "country": "United States",
+    "lat": 36.1699,
+    "lng": -115.1398,
+    "tier": "familiar"
+  },
+  {
+    "name": "Miami, United States",
+    "displayName": "Miami",
+    "sourceName": "Miami",
+    "country": "United States",
+    "lat": 25.7617,
+    "lng": -80.1918,
+    "tier": "familiar"
+  },
+  {
+    "name": "Boston, United States",
+    "displayName": "Boston",
+    "sourceName": "Boston",
+    "country": "United States",
+    "lat": 42.3601,
+    "lng": -71.0589,
+    "tier": "familiar"
+  },
+  {
+    "name": "Washington, D.C., United States",
+    "displayName": "Washington, D.C.",
+    "sourceName": "Washington, D.C.",
+    "country": "United States",
+    "lat": 38.9072,
+    "lng": -77.0369,
+    "tier": "familiar"
+  },
+  {
+    "name": "Seattle, United States",
+    "displayName": "Seattle",
+    "sourceName": "Seattle",
+    "country": "United States",
+    "lat": 47.6062,
+    "lng": -122.3321,
+    "tier": "familiar"
+  },
+  {
+    "name": "New Orleans, United States",
+    "displayName": "New Orleans",
+    "sourceName": "New Orleans",
+    "country": "United States",
+    "lat": 29.9511,
+    "lng": -90.0715,
+    "tier": "familiar"
+  },
+  {
+    "name": "Nashville, United States",
+    "displayName": "Nashville",
+    "sourceName": "Nashville",
+    "country": "United States",
+    "lat": 36.1627,
+    "lng": -86.7816,
+    "tier": "familiar"
+  },
+  {
+    "name": "Orlando, United States",
+    "displayName": "Orlando",
+    "sourceName": "Orlando",
+    "country": "United States",
+    "lat": 28.5383,
+    "lng": -81.3792,
+    "tier": "familiar"
+  },
+  {
+    "name": "Philadelphia, United States",
+    "displayName": "Philadelphia",
+    "sourceName": "Philadelphia",
+    "country": "United States",
+    "lat": 39.9526,
+    "lng": -75.1652,
+    "tier": "familiar"
+  },
+  {
+    "name": "Detroit, United States",
+    "displayName": "Detroit",
+    "sourceName": "Detroit",
+    "country": "United States",
+    "lat": 42.3314,
+    "lng": -83.0458,
+    "tier": "familiar"
+  },
+  {
+    "name": "Atlanta, United States",
+    "displayName": "Atlanta",
+    "sourceName": "Atlanta",
+    "country": "United States",
+    "lat": 33.749,
+    "lng": -84.388,
+    "tier": "familiar"
+  },
+  {
+    "name": "Dallas, United States",
+    "displayName": "Dallas",
+    "sourceName": "Dallas",
+    "country": "United States",
+    "lat": 32.7767,
+    "lng": -96.797,
+    "tier": "familiar"
+  },
+  {
+    "name": "Houston, United States",
+    "displayName": "Houston",
+    "sourceName": "Houston",
+    "country": "United States",
+    "lat": 29.7604,
+    "lng": -95.3698,
+    "tier": "familiar"
+  },
+  {
+    "name": "Austin, United States",
+    "displayName": "Austin",
+    "sourceName": "Austin",
+    "country": "United States",
+    "lat": 30.2672,
+    "lng": -97.7431,
+    "tier": "familiar"
+  },
+  {
+    "name": "Denver, United States",
+    "displayName": "Denver",
+    "sourceName": "Denver",
+    "country": "United States",
+    "lat": 39.7392,
+    "lng": -104.9903,
+    "tier": "familiar"
+  },
+  {
+    "name": "Phoenix, United States",
+    "displayName": "Phoenix",
+    "sourceName": "Phoenix",
+    "country": "United States",
+    "lat": 33.4484,
+    "lng": -112.074,
+    "tier": "familiar"
+  },
+  {
+    "name": "San Diego, United States",
+    "displayName": "San Diego",
+    "sourceName": "San Diego",
+    "country": "United States",
+    "lat": 32.7157,
+    "lng": -117.1611,
+    "tier": "familiar"
+  },
+  {
+    "name": "Portland, United States",
+    "displayName": "Portland",
+    "sourceName": "Portland",
+    "country": "United States",
+    "lat": 45.5152,
+    "lng": -122.6784,
+    "tier": "familiar"
+  },
+  {
+    "name": "Toronto, Canada",
+    "displayName": "Toronto",
+    "sourceName": "Toronto",
+    "country": "Canada",
+    "lat": 43.6532,
+    "lng": -79.3832,
+    "tier": "familiar"
+  },
+  {
+    "name": "Vancouver, Canada",
+    "displayName": "Vancouver",
+    "sourceName": "Vancouver",
+    "country": "Canada",
+    "lat": 49.2827,
+    "lng": -123.1207,
+    "tier": "familiar"
+  },
+  {
+    "name": "Montreal, Canada",
+    "displayName": "Montreal",
+    "sourceName": "Montreal",
+    "country": "Canada",
+    "lat": 45.5017,
+    "lng": -73.5673,
+    "tier": "familiar"
+  },
+  {
+    "name": "Quebec City, Canada",
+    "displayName": "Quebec City",
+    "sourceName": "Quebec City",
+    "country": "Canada",
+    "lat": 46.8139,
+    "lng": -71.208,
+    "tier": "familiar"
+  },
+  {
+    "name": "Ottawa, Canada",
+    "displayName": "Ottawa",
+    "sourceName": "Ottawa",
+    "country": "Canada",
+    "lat": 45.4215,
+    "lng": -75.6972,
+    "tier": "familiar"
+  },
+  {
+    "name": "Calgary, Canada",
+    "displayName": "Calgary",
+    "sourceName": "Calgary",
+    "country": "Canada",
+    "lat": 51.0447,
+    "lng": -114.0719,
+    "tier": "familiar"
+  },
+  {
+    "name": "Paris, France",
+    "displayName": "Paris",
+    "sourceName": "Paris",
+    "country": "France",
+    "lat": 48.8566,
+    "lng": 2.3522,
+    "tier": "familiar"
+  },
+  {
+    "name": "Marseille, France",
+    "displayName": "Marseille",
+    "sourceName": "Marseille",
+    "country": "France",
+    "lat": 43.2965,
+    "lng": 5.3698,
+    "tier": "familiar"
+  },
+  {
+    "name": "Lyon, France",
+    "displayName": "Lyon",
+    "sourceName": "Lyon",
+    "country": "France",
+    "lat": 45.764,
+    "lng": 4.8357,
+    "tier": "familiar"
+  },
+  {
+    "name": "Toulouse, France",
+    "displayName": "Toulouse",
+    "sourceName": "Toulouse",
+    "country": "France",
+    "lat": 43.6047,
+    "lng": 1.4442,
+    "tier": "familiar"
+  },
+  {
+    "name": "Nice, France",
+    "displayName": "Nice",
+    "sourceName": "Nice",
+    "country": "France",
+    "lat": 43.7102,
+    "lng": 7.262,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bordeaux, France",
+    "displayName": "Bordeaux",
+    "sourceName": "Bordeaux",
+    "country": "France",
+    "lat": 44.8378,
+    "lng": -0.5792,
+    "tier": "familiar"
+  },
+  {
+    "name": "Lille, France",
+    "displayName": "Lille",
+    "sourceName": "Lille",
+    "country": "France",
+    "lat": 50.6292,
+    "lng": 3.0573,
+    "tier": "familiar"
+  },
+  {
+    "name": "Nantes, France",
+    "displayName": "Nantes",
+    "sourceName": "Nantes",
+    "country": "France",
+    "lat": 47.2184,
+    "lng": -1.5536,
+    "tier": "familiar"
+  },
+  {
+    "name": "Strasbourg, France",
+    "displayName": "Strasbourg",
+    "sourceName": "Strasbourg",
+    "country": "France",
+    "lat": 48.5734,
+    "lng": 7.7521,
+    "tier": "familiar"
+  },
+  {
+    "name": "Cannes, France",
+    "displayName": "Cannes",
+    "sourceName": "Cannes",
+    "country": "France",
+    "lat": 43.5528,
+    "lng": 7.0174,
+    "tier": "familiar"
+  },
+  {
+    "name": "Berlin, Germany",
+    "displayName": "Berlin",
+    "sourceName": "Berlin",
+    "country": "Germany",
+    "lat": 52.52,
+    "lng": 13.405,
+    "tier": "familiar"
+  },
+  {
+    "name": "Munich, Germany",
+    "displayName": "Munich",
+    "sourceName": "Munich",
+    "country": "Germany",
+    "lat": 48.1351,
+    "lng": 11.582,
+    "tier": "familiar"
+  },
+  {
+    "name": "Hamburg, Germany",
+    "displayName": "Hamburg",
+    "sourceName": "Hamburg",
+    "country": "Germany",
+    "lat": 53.5511,
+    "lng": 9.9937,
+    "tier": "familiar"
+  },
+  {
+    "name": "Cologne, Germany",
+    "displayName": "Cologne",
+    "sourceName": "Cologne",
+    "country": "Germany",
+    "lat": 50.9375,
+    "lng": 6.9603,
+    "tier": "familiar"
+  },
+  {
+    "name": "Frankfurt, Germany",
+    "displayName": "Frankfurt",
+    "sourceName": "Frankfurt",
+    "country": "Germany",
+    "lat": 50.1109,
+    "lng": 8.6821,
+    "tier": "familiar"
+  },
+  {
+    "name": "Düsseldorf, Germany",
+    "displayName": "Düsseldorf",
+    "sourceName": "Düsseldorf",
+    "country": "Germany",
+    "lat": 51.2277,
+    "lng": 6.7735,
+    "tier": "familiar"
+  },
+  {
+    "name": "Stuttgart, Germany",
+    "displayName": "Stuttgart",
+    "sourceName": "Stuttgart",
+    "country": "Germany",
+    "lat": 48.7758,
+    "lng": 9.1829,
+    "tier": "familiar"
+  },
+  {
+    "name": "Dresden, Germany",
+    "displayName": "Dresden",
+    "sourceName": "Dresden",
+    "country": "Germany",
+    "lat": 51.0504,
+    "lng": 13.7373,
+    "tier": "familiar"
+  },
+  {
+    "name": "Leipzig, Germany",
+    "displayName": "Leipzig",
+    "sourceName": "Leipzig",
+    "country": "Germany",
+    "lat": 51.3397,
+    "lng": 12.3731,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bremen, Germany",
+    "displayName": "Bremen",
+    "sourceName": "Bremen",
+    "country": "Germany",
+    "lat": 53.0793,
+    "lng": 8.8017,
+    "tier": "familiar"
+  },
+  {
+    "name": "Amsterdam, Netherlands",
+    "displayName": "Amsterdam",
+    "sourceName": "Amsterdam",
+    "country": "Netherlands",
+    "lat": 52.3676,
+    "lng": 4.9041,
+    "tier": "familiar"
+  },
+  {
+    "name": "Rotterdam, Netherlands",
+    "displayName": "Rotterdam",
+    "sourceName": "Rotterdam",
+    "country": "Netherlands",
+    "lat": 51.9244,
+    "lng": 4.4777,
+    "tier": "familiar"
+  },
+  {
+    "name": "The Hague, Netherlands",
+    "displayName": "The Hague",
+    "sourceName": "The Hague",
+    "country": "Netherlands",
+    "lat": 52.0705,
+    "lng": 4.3007,
+    "tier": "familiar"
+  },
+  {
+    "name": "Utrecht, Netherlands",
+    "displayName": "Utrecht",
+    "sourceName": "Utrecht",
+    "country": "Netherlands",
+    "lat": 52.0907,
+    "lng": 5.1214,
+    "tier": "familiar"
+  },
+  {
+    "name": "Brussels, Belgium",
+    "displayName": "Brussels",
+    "sourceName": "Brussels",
+    "country": "Belgium",
+    "lat": 50.8503,
+    "lng": 4.3517,
+    "tier": "familiar"
+  },
+  {
+    "name": "Antwerp, Belgium",
+    "displayName": "Antwerp",
+    "sourceName": "Antwerp",
+    "country": "Belgium",
+    "lat": 51.2194,
+    "lng": 4.4025,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bruges, Belgium",
+    "displayName": "Bruges",
+    "sourceName": "Bruges",
+    "country": "Belgium",
+    "lat": 51.2093,
+    "lng": 3.2247,
+    "tier": "familiar"
+  },
+  {
+    "name": "Ghent, Belgium",
+    "displayName": "Ghent",
+    "sourceName": "Ghent",
+    "country": "Belgium",
+    "lat": 51.0543,
+    "lng": 3.7174,
+    "tier": "familiar"
+  },
+  {
+    "name": "Zurich, Switzerland",
+    "displayName": "Zurich",
+    "sourceName": "Zurich",
+    "country": "Switzerland",
+    "lat": 47.3769,
+    "lng": 8.5417,
+    "tier": "familiar"
+  },
+  {
+    "name": "Geneva, Switzerland",
+    "displayName": "Geneva",
+    "sourceName": "Geneva",
+    "country": "Switzerland",
+    "lat": 46.2044,
+    "lng": 6.1432,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bern, Switzerland",
+    "displayName": "Bern",
+    "sourceName": "Bern",
+    "country": "Switzerland",
+    "lat": 46.948,
+    "lng": 7.4474,
+    "tier": "familiar"
+  },
+  {
+    "name": "Basel, Switzerland",
+    "displayName": "Basel",
+    "sourceName": "Basel",
+    "country": "Switzerland",
+    "lat": 47.5596,
+    "lng": 7.5886,
+    "tier": "familiar"
+  },
+  {
+    "name": "Vienna, Austria",
+    "displayName": "Vienna",
+    "sourceName": "Vienna",
+    "country": "Austria",
+    "lat": 48.2082,
+    "lng": 16.3738,
+    "tier": "familiar"
+  },
+  {
+    "name": "Salzburg, Austria",
+    "displayName": "Salzburg",
+    "sourceName": "Salzburg",
+    "country": "Austria",
+    "lat": 47.8095,
+    "lng": 13.055,
+    "tier": "familiar"
+  },
+  {
+    "name": "Rome, Italy",
+    "displayName": "Rome",
+    "sourceName": "Rome",
+    "country": "Italy",
+    "lat": 41.9028,
+    "lng": 12.4964,
+    "tier": "familiar"
+  },
+  {
+    "name": "Milan, Italy",
+    "displayName": "Milan",
+    "sourceName": "Milan",
+    "country": "Italy",
+    "lat": 45.4642,
+    "lng": 9.19,
+    "tier": "familiar"
+  },
+  {
+    "name": "Venice, Italy",
+    "displayName": "Venice",
+    "sourceName": "Venice",
+    "country": "Italy",
+    "lat": 45.4408,
+    "lng": 12.3155,
+    "tier": "familiar"
+  },
+  {
+    "name": "Florence, Italy",
+    "displayName": "Florence",
+    "sourceName": "Florence",
+    "country": "Italy",
+    "lat": 43.7696,
+    "lng": 11.2558,
+    "tier": "familiar"
+  },
+  {
+    "name": "Naples, Italy",
+    "displayName": "Naples",
+    "sourceName": "Naples",
+    "country": "Italy",
+    "lat": 40.8518,
+    "lng": 14.2681,
+    "tier": "familiar"
+  },
+  {
+    "name": "Turin, Italy",
+    "displayName": "Turin",
+    "sourceName": "Turin",
+    "country": "Italy",
+    "lat": 45.0703,
+    "lng": 7.6869,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bologna, Italy",
+    "displayName": "Bologna",
+    "sourceName": "Bologna",
+    "country": "Italy",
+    "lat": 44.4949,
+    "lng": 11.3426,
+    "tier": "familiar"
+  },
+  {
+    "name": "Palermo, Italy",
+    "displayName": "Palermo",
+    "sourceName": "Palermo",
+    "country": "Italy",
+    "lat": 38.1157,
+    "lng": 13.3615,
+    "tier": "familiar"
+  },
+  {
+    "name": "Pisa, Italy",
+    "displayName": "Pisa",
+    "sourceName": "Pisa",
+    "country": "Italy",
+    "lat": 43.7228,
+    "lng": 10.4017,
+    "tier": "familiar"
+  },
+  {
+    "name": "Verona, Italy",
+    "displayName": "Verona",
+    "sourceName": "Verona",
+    "country": "Italy",
+    "lat": 45.4384,
+    "lng": 10.9916,
+    "tier": "familiar"
+  },
+  {
+    "name": "Madrid, Spain",
+    "displayName": "Madrid",
+    "sourceName": "Madrid",
+    "country": "Spain",
+    "lat": 40.4168,
+    "lng": -3.7038,
+    "tier": "familiar"
+  },
+  {
+    "name": "Barcelona, Spain",
+    "displayName": "Barcelona",
+    "sourceName": "Barcelona",
+    "country": "Spain",
+    "lat": 41.3874,
+    "lng": 2.1686,
+    "tier": "familiar"
+  },
+  {
+    "name": "Valencia, Spain",
+    "displayName": "Valencia",
+    "sourceName": "Valencia",
+    "country": "Spain",
+    "lat": 39.4699,
+    "lng": -0.3763,
+    "tier": "familiar"
+  },
+  {
+    "name": "Seville, Spain",
+    "displayName": "Seville",
+    "sourceName": "Seville",
+    "country": "Spain",
+    "lat": 37.3891,
+    "lng": -5.9845,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bilbao, Spain",
+    "displayName": "Bilbao",
+    "sourceName": "Bilbao",
+    "country": "Spain",
+    "lat": 43.263,
+    "lng": -2.935,
+    "tier": "familiar"
+  },
+  {
+    "name": "Granada, Spain",
+    "displayName": "Granada",
+    "sourceName": "Granada",
+    "country": "Spain",
+    "lat": 37.1773,
+    "lng": -3.5986,
+    "tier": "familiar"
+  },
+  {
+    "name": "Málaga, Spain",
+    "displayName": "Málaga",
+    "sourceName": "Málaga",
+    "country": "Spain",
+    "lat": 36.7213,
+    "lng": -4.4214,
+    "tier": "familiar"
+  },
+  {
+    "name": "Palma, Spain",
+    "displayName": "Palma",
+    "sourceName": "Palma",
+    "country": "Spain",
+    "lat": 39.5696,
+    "lng": 2.6502,
+    "tier": "familiar"
+  },
+  {
+    "name": "Lisbon, Portugal",
+    "displayName": "Lisbon",
+    "sourceName": "Lisbon",
+    "country": "Portugal",
+    "lat": 38.7223,
+    "lng": -9.1393,
+    "tier": "familiar"
+  },
+  {
+    "name": "Porto, Portugal",
+    "displayName": "Porto",
+    "sourceName": "Porto",
+    "country": "Portugal",
+    "lat": 41.1579,
+    "lng": -8.6291,
+    "tier": "familiar"
+  },
+  {
+    "name": "Prague, Czechia",
+    "displayName": "Prague",
+    "sourceName": "Prague",
+    "country": "Czechia",
+    "lat": 50.0755,
+    "lng": 14.4378,
+    "tier": "familiar"
+  },
+  {
+    "name": "Warsaw, Poland",
+    "displayName": "Warsaw",
+    "sourceName": "Warsaw",
+    "country": "Poland",
+    "lat": 52.2297,
+    "lng": 21.0122,
+    "tier": "familiar"
+  },
+  {
+    "name": "Kraków, Poland",
+    "displayName": "Kraków",
+    "sourceName": "Kraków",
+    "country": "Poland",
+    "lat": 50.0647,
+    "lng": 19.945,
+    "tier": "familiar"
+  },
+  {
+    "name": "Budapest, Hungary",
+    "displayName": "Budapest",
+    "sourceName": "Budapest",
+    "country": "Hungary",
+    "lat": 47.4979,
+    "lng": 19.0402,
+    "tier": "familiar"
+  },
+  {
+    "name": "Athens, Greece",
+    "displayName": "Athens",
+    "sourceName": "Athens",
+    "country": "Greece",
+    "lat": 37.9838,
+    "lng": 23.7275,
+    "tier": "familiar"
+  },
+  {
+    "name": "Copenhagen, Denmark",
+    "displayName": "Copenhagen",
+    "sourceName": "Copenhagen",
+    "country": "Denmark",
+    "lat": 55.6761,
+    "lng": 12.5683,
+    "tier": "familiar"
+  },
+  {
+    "name": "Stockholm, Sweden",
+    "displayName": "Stockholm",
+    "sourceName": "Stockholm",
+    "country": "Sweden",
+    "lat": 59.3293,
+    "lng": 18.0686,
+    "tier": "familiar"
+  },
+  {
+    "name": "Oslo, Norway",
+    "displayName": "Oslo",
+    "sourceName": "Oslo",
+    "country": "Norway",
+    "lat": 59.9139,
+    "lng": 10.7522,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bergen, Norway",
+    "displayName": "Bergen",
+    "sourceName": "Bergen",
+    "country": "Norway",
+    "lat": 60.3913,
+    "lng": 5.3221,
+    "tier": "familiar"
+  },
+  {
+    "name": "Helsinki, Finland",
+    "displayName": "Helsinki",
+    "sourceName": "Helsinki",
+    "country": "Finland",
+    "lat": 60.1699,
+    "lng": 24.9384,
+    "tier": "familiar"
+  },
+  {
+    "name": "Reykjavik, Iceland",
+    "displayName": "Reykjavik",
+    "sourceName": "Reykjavik",
+    "country": "Iceland",
+    "lat": 64.1466,
+    "lng": -21.9426,
+    "tier": "familiar"
+  },
+  {
+    "name": "Tallinn, Estonia",
+    "displayName": "Tallinn",
+    "sourceName": "Tallinn",
+    "country": "Estonia",
+    "lat": 59.437,
+    "lng": 24.7536,
+    "tier": "familiar"
+  },
+  {
+    "name": "Riga, Latvia",
+    "displayName": "Riga",
+    "sourceName": "Riga",
+    "country": "Latvia",
+    "lat": 56.9496,
+    "lng": 24.1052,
+    "tier": "familiar"
+  },
+  {
+    "name": "Vilnius, Lithuania",
+    "displayName": "Vilnius",
+    "sourceName": "Vilnius",
+    "country": "Lithuania",
+    "lat": 54.6872,
+    "lng": 25.2797,
+    "tier": "familiar"
+  },
+  {
+    "name": "Zagreb, Croatia",
+    "displayName": "Zagreb",
+    "sourceName": "Zagreb",
+    "country": "Croatia",
+    "lat": 45.815,
+    "lng": 15.9819,
+    "tier": "familiar"
+  },
+  {
+    "name": "Dubrovnik, Croatia",
+    "displayName": "Dubrovnik",
+    "sourceName": "Dubrovnik",
+    "country": "Croatia",
+    "lat": 42.6507,
+    "lng": 18.0944,
+    "tier": "familiar"
+  },
+  {
+    "name": "Istanbul, Turkey",
+    "displayName": "Istanbul",
+    "sourceName": "Istanbul",
+    "country": "Turkey",
+    "lat": 41.0082,
+    "lng": 28.9784,
+    "tier": "familiar"
+  },
+  {
+    "name": "Cairo, Egypt",
+    "displayName": "Cairo",
+    "sourceName": "Cairo",
+    "country": "Egypt",
+    "lat": 30.0444,
+    "lng": 31.2357,
+    "tier": "familiar"
+  },
+  {
+    "name": "Marrakesh, Morocco",
+    "displayName": "Marrakesh",
+    "sourceName": "Marrakesh",
+    "country": "Morocco",
+    "lat": 31.6295,
+    "lng": -7.9811,
+    "tier": "familiar"
+  },
+  {
+    "name": "Cape Town, South Africa",
+    "displayName": "Cape Town",
+    "sourceName": "Cape Town",
+    "country": "South Africa",
+    "lat": -33.9249,
+    "lng": 18.4241,
+    "tier": "familiar"
+  },
+  {
+    "name": "Johannesburg, South Africa",
+    "displayName": "Johannesburg",
+    "sourceName": "Johannesburg",
+    "country": "South Africa",
+    "lat": -26.2041,
+    "lng": 28.0473,
+    "tier": "familiar"
+  },
+  {
+    "name": "Nairobi, Kenya",
+    "displayName": "Nairobi",
+    "sourceName": "Nairobi",
+    "country": "Kenya",
+    "lat": -1.2921,
+    "lng": 36.8219,
+    "tier": "familiar"
+  },
+  {
+    "name": "Lagos, Nigeria",
+    "displayName": "Lagos",
+    "sourceName": "Lagos",
+    "country": "Nigeria",
+    "lat": 6.5244,
+    "lng": 3.3792,
+    "tier": "familiar"
+  },
+  {
+    "name": "Accra, Ghana",
+    "displayName": "Accra",
+    "sourceName": "Accra",
+    "country": "Ghana",
+    "lat": 5.6037,
+    "lng": -0.187,
+    "tier": "familiar"
+  },
+  {
+    "name": "Dubai, United Arab Emirates",
+    "displayName": "Dubai",
+    "sourceName": "Dubai",
+    "country": "United Arab Emirates",
+    "lat": 25.2048,
+    "lng": 55.2708,
+    "tier": "familiar"
+  },
+  {
+    "name": "Abu Dhabi, United Arab Emirates",
+    "displayName": "Abu Dhabi",
+    "sourceName": "Abu Dhabi",
+    "country": "United Arab Emirates",
+    "lat": 24.4539,
+    "lng": 54.3773,
+    "tier": "familiar"
+  },
+  {
+    "name": "Doha, Qatar",
+    "displayName": "Doha",
+    "sourceName": "Doha",
+    "country": "Qatar",
+    "lat": 25.2854,
+    "lng": 51.531,
+    "tier": "familiar"
+  },
+  {
+    "name": "Jerusalem, Israel",
+    "displayName": "Jerusalem",
+    "sourceName": "Jerusalem",
+    "country": "Israel",
+    "lat": 31.7683,
+    "lng": 35.2137,
+    "tier": "familiar"
+  },
+  {
+    "name": "Tokyo, Japan",
+    "displayName": "Tokyo",
+    "sourceName": "Tokyo",
+    "country": "Japan",
+    "lat": 35.6762,
+    "lng": 139.6503,
+    "tier": "familiar"
+  },
+  {
+    "name": "Kyoto, Japan",
+    "displayName": "Kyoto",
+    "sourceName": "Kyoto",
+    "country": "Japan",
+    "lat": 35.0116,
+    "lng": 135.7681,
+    "tier": "familiar"
+  },
+  {
+    "name": "Osaka, Japan",
+    "displayName": "Osaka",
+    "sourceName": "Osaka",
+    "country": "Japan",
+    "lat": 34.6937,
+    "lng": 135.5023,
+    "tier": "familiar"
+  },
+  {
+    "name": "Seoul, South Korea",
+    "displayName": "Seoul",
+    "sourceName": "Seoul",
+    "country": "South Korea",
+    "lat": 37.5665,
+    "lng": 126.978,
+    "tier": "familiar"
+  },
+  {
+    "name": "Beijing, China",
+    "displayName": "Beijing",
+    "sourceName": "Beijing",
+    "country": "China",
+    "lat": 39.9042,
+    "lng": 116.4074,
+    "tier": "familiar"
+  },
+  {
+    "name": "Shanghai, China",
+    "displayName": "Shanghai",
+    "sourceName": "Shanghai",
+    "country": "China",
+    "lat": 31.2304,
+    "lng": 121.4737,
+    "tier": "familiar"
+  },
+  {
+    "name": "Hong Kong, China",
+    "displayName": "Hong Kong",
+    "sourceName": "Hong Kong",
+    "country": "China",
+    "lat": 22.3193,
+    "lng": 114.1694,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bangkok, Thailand",
+    "displayName": "Bangkok",
+    "sourceName": "Bangkok",
+    "country": "Thailand",
+    "lat": 13.7563,
+    "lng": 100.5018,
+    "tier": "familiar"
+  },
+  {
+    "name": "Singapore, Singapore",
+    "displayName": "Singapore",
+    "sourceName": "Singapore",
+    "country": "Singapore",
+    "lat": 1.3521,
+    "lng": 103.8198,
+    "tier": "familiar"
+  },
+  {
+    "name": "Kuala Lumpur, Malaysia",
+    "displayName": "Kuala Lumpur",
+    "sourceName": "Kuala Lumpur",
+    "country": "Malaysia",
+    "lat": 3.139,
+    "lng": 101.6869,
+    "tier": "familiar"
+  },
+  {
+    "name": "Hanoi, Vietnam",
+    "displayName": "Hanoi",
+    "sourceName": "Hanoi",
+    "country": "Vietnam",
+    "lat": 21.0278,
+    "lng": 105.8342,
+    "tier": "familiar"
+  },
+  {
+    "name": "Ho Chi Minh City, Vietnam",
+    "displayName": "Ho Chi Minh City",
+    "sourceName": "Ho Chi Minh City",
+    "country": "Vietnam",
+    "lat": 10.8231,
+    "lng": 106.6297,
+    "tier": "familiar"
+  },
+  {
+    "name": "Jakarta, Indonesia",
+    "displayName": "Jakarta",
+    "sourceName": "Jakarta",
+    "country": "Indonesia",
+    "lat": -6.2088,
+    "lng": 106.8456,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bali, Indonesia",
+    "displayName": "Bali",
+    "sourceName": "Bali",
+    "country": "Indonesia",
+    "lat": -8.4095,
+    "lng": 115.1889,
+    "tier": "familiar"
+  },
+  {
+    "name": "Manila, Philippines",
+    "displayName": "Manila",
+    "sourceName": "Manila",
+    "country": "Philippines",
+    "lat": 14.5995,
+    "lng": 120.9842,
+    "tier": "familiar"
+  },
+  {
+    "name": "Delhi, India",
+    "displayName": "Delhi",
+    "sourceName": "Delhi",
+    "country": "India",
+    "lat": 28.6139,
+    "lng": 77.209,
+    "tier": "familiar"
+  },
+  {
+    "name": "Mumbai, India",
+    "displayName": "Mumbai",
+    "sourceName": "Mumbai",
+    "country": "India",
+    "lat": 19.076,
+    "lng": 72.8777,
+    "tier": "familiar"
+  },
+  {
+    "name": "Jaipur, India",
+    "displayName": "Jaipur",
+    "sourceName": "Jaipur",
+    "country": "India",
+    "lat": 26.9124,
+    "lng": 75.7873,
+    "tier": "familiar"
+  },
+  {
+    "name": "Kathmandu, Nepal",
+    "displayName": "Kathmandu",
+    "sourceName": "Kathmandu",
+    "country": "Nepal",
+    "lat": 27.7172,
+    "lng": 85.324,
+    "tier": "familiar"
+  },
+  {
+    "name": "Colombo, Sri Lanka",
+    "displayName": "Colombo",
+    "sourceName": "Colombo",
+    "country": "Sri Lanka",
+    "lat": 6.9271,
+    "lng": 79.8612,
+    "tier": "familiar"
+  },
+  {
+    "name": "Dhaka, Bangladesh",
+    "displayName": "Dhaka",
+    "sourceName": "Dhaka",
+    "country": "Bangladesh",
+    "lat": 23.8103,
+    "lng": 90.4125,
+    "tier": "familiar"
+  },
+  {
+    "name": "Lahore, Pakistan",
+    "displayName": "Lahore",
+    "sourceName": "Lahore",
+    "country": "Pakistan",
+    "lat": 31.5204,
+    "lng": 74.3587,
+    "tier": "familiar"
+  },
+  {
+    "name": "Tashkent, Uzbekistan",
+    "displayName": "Tashkent",
+    "sourceName": "Tashkent",
+    "country": "Uzbekistan",
+    "lat": 41.2995,
+    "lng": 69.2401,
+    "tier": "familiar"
+  },
+  {
+    "name": "Samarkand, Uzbekistan",
+    "displayName": "Samarkand",
+    "sourceName": "Samarkand",
+    "country": "Uzbekistan",
+    "lat": 39.6542,
+    "lng": 66.9597,
+    "tier": "familiar"
+  },
+  {
+    "name": "Tbilisi, Georgia",
+    "displayName": "Tbilisi",
+    "sourceName": "Tbilisi",
+    "country": "Georgia",
+    "lat": 41.7151,
+    "lng": 44.8271,
+    "tier": "familiar"
+  },
+  {
+    "name": "Baku, Azerbaijan",
+    "displayName": "Baku",
+    "sourceName": "Baku",
+    "country": "Azerbaijan",
+    "lat": 40.4093,
+    "lng": 49.8671,
+    "tier": "familiar"
+  },
+  {
+    "name": "Ulaanbaatar, Mongolia",
+    "displayName": "Ulaanbaatar",
+    "sourceName": "Ulaanbaatar",
+    "country": "Mongolia",
+    "lat": 47.8864,
+    "lng": 106.9057,
+    "tier": "familiar"
+  },
+  {
+    "name": "Sydney, Australia",
+    "displayName": "Sydney",
+    "sourceName": "Sydney",
+    "country": "Australia",
+    "lat": -33.8688,
+    "lng": 151.2093,
+    "tier": "familiar"
+  },
+  {
+    "name": "Melbourne, Australia",
+    "displayName": "Melbourne",
+    "sourceName": "Melbourne",
+    "country": "Australia",
+    "lat": -37.8136,
+    "lng": 144.9631,
+    "tier": "familiar"
+  },
+  {
+    "name": "Brisbane, Australia",
+    "displayName": "Brisbane",
+    "sourceName": "Brisbane",
+    "country": "Australia",
+    "lat": -27.4698,
+    "lng": 153.0251,
+    "tier": "familiar"
+  },
+  {
+    "name": "Perth, Australia",
+    "displayName": "Perth",
+    "sourceName": "Perth",
+    "country": "Australia",
+    "lat": -31.9523,
+    "lng": 115.8613,
+    "tier": "familiar"
+  },
+  {
+    "name": "Adelaide, Australia",
+    "displayName": "Adelaide",
+    "sourceName": "Adelaide",
+    "country": "Australia",
+    "lat": -34.9285,
+    "lng": 138.6007,
+    "tier": "familiar"
+  },
+  {
+    "name": "Hobart, Australia",
+    "displayName": "Hobart",
+    "sourceName": "Hobart",
+    "country": "Australia",
+    "lat": -42.8821,
+    "lng": 147.3272,
+    "tier": "familiar"
+  },
+  {
+    "name": "Auckland, New Zealand",
+    "displayName": "Auckland",
+    "sourceName": "Auckland",
+    "country": "New Zealand",
+    "lat": -36.8509,
+    "lng": 174.7645,
+    "tier": "familiar"
+  },
+  {
+    "name": "Wellington, New Zealand",
+    "displayName": "Wellington",
+    "sourceName": "Wellington",
+    "country": "New Zealand",
+    "lat": -41.2865,
+    "lng": 174.7762,
+    "tier": "familiar"
+  },
+  {
+    "name": "Christchurch, New Zealand",
+    "displayName": "Christchurch",
+    "sourceName": "Christchurch",
+    "country": "New Zealand",
+    "lat": -43.5321,
+    "lng": 172.6362,
+    "tier": "familiar"
+  },
+  {
+    "name": "Queenstown, New Zealand",
+    "displayName": "Queenstown",
+    "sourceName": "Queenstown",
+    "country": "New Zealand",
+    "lat": -45.0312,
+    "lng": 168.6626,
+    "tier": "familiar"
+  },
+  {
+    "name": "Mexico City, Mexico",
+    "displayName": "Mexico City",
+    "sourceName": "Mexico City",
+    "country": "Mexico",
+    "lat": 19.4326,
+    "lng": -99.1332,
+    "tier": "familiar"
+  },
+  {
+    "name": "Cancún, Mexico",
+    "displayName": "Cancún",
+    "sourceName": "Cancún",
+    "country": "Mexico",
+    "lat": 21.1619,
+    "lng": -86.8515,
+    "tier": "familiar"
+  },
+  {
+    "name": "Havana, Cuba",
+    "displayName": "Havana",
+    "sourceName": "Havana",
+    "country": "Cuba",
+    "lat": 23.1136,
+    "lng": -82.3666,
+    "tier": "familiar"
+  },
+  {
+    "name": "San Juan, Puerto Rico",
+    "displayName": "San Juan",
+    "sourceName": "San Juan",
+    "country": "Puerto Rico",
+    "lat": 18.4655,
+    "lng": -66.1057,
+    "tier": "familiar"
+  },
+  {
+    "name": "Rio de Janeiro, Brazil",
+    "displayName": "Rio de Janeiro",
+    "sourceName": "Rio de Janeiro",
+    "country": "Brazil",
+    "lat": -22.9068,
+    "lng": -43.1729,
+    "tier": "familiar"
+  },
+  {
+    "name": "São Paulo, Brazil",
+    "displayName": "São Paulo",
+    "sourceName": "São Paulo",
+    "country": "Brazil",
+    "lat": -23.5558,
+    "lng": -46.6396,
+    "tier": "familiar"
+  },
+  {
+    "name": "Buenos Aires, Argentina",
+    "displayName": "Buenos Aires",
+    "sourceName": "Buenos Aires",
+    "country": "Argentina",
+    "lat": -34.6037,
+    "lng": -58.3816,
+    "tier": "familiar"
+  },
+  {
+    "name": "Santiago, Chile",
+    "displayName": "Santiago",
+    "sourceName": "Santiago",
+    "country": "Chile",
+    "lat": -33.4489,
+    "lng": -70.6693,
+    "tier": "familiar"
+  },
+  {
+    "name": "Lima, Peru",
+    "displayName": "Lima",
+    "sourceName": "Lima",
+    "country": "Peru",
+    "lat": -12.0464,
+    "lng": -77.0428,
+    "tier": "familiar"
+  },
+  {
+    "name": "Cusco, Peru",
+    "displayName": "Cusco",
+    "sourceName": "Cusco",
+    "country": "Peru",
+    "lat": -13.532,
+    "lng": -71.9675,
+    "tier": "familiar"
+  },
+  {
+    "name": "Bogotá, Colombia",
+    "displayName": "Bogotá",
+    "sourceName": "Bogotá",
+    "country": "Colombia",
+    "lat": 4.711,
+    "lng": -74.0721,
+    "tier": "familiar"
+  },
+  {
+    "name": "Medellín, Colombia",
+    "displayName": "Medellín",
+    "sourceName": "Medellín",
+    "country": "Colombia",
+    "lat": 6.2442,
+    "lng": -75.5812,
+    "tier": "familiar"
+  },
+  {
+    "name": "Cartagena, Colombia",
+    "displayName": "Cartagena",
+    "sourceName": "Cartagena",
+    "country": "Colombia",
+    "lat": 10.391,
+    "lng": -75.4794,
+    "tier": "familiar"
+  },
+  {
+    "name": "Quito, Ecuador",
+    "displayName": "Quito",
+    "sourceName": "Quito",
+    "country": "Ecuador",
+    "lat": -0.1807,
+    "lng": -78.4678,
+    "tier": "familiar"
+  },
+  {
+    "name": "La Paz, Bolivia",
+    "displayName": "La Paz",
+    "sourceName": "La Paz",
+    "country": "Bolivia",
+    "lat": -16.4897,
+    "lng": -68.1193,
+    "tier": "familiar"
+  },
+  {
+    "name": "Montevideo, Uruguay",
+    "displayName": "Montevideo",
+    "sourceName": "Montevideo",
+    "country": "Uruguay",
+    "lat": -34.9011,
+    "lng": -56.1645,
+    "tier": "familiar"
+  }
+]

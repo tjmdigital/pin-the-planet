@@ -1,0 +1,758 @@
+[
+  {
+    "name": "Nukus, Uzbekistan",
+    "displayName": "Nukus",
+    "sourceName": "Nukus",
+    "country": "Uzbekistan",
+    "lat": 42.4531,
+    "lng": 59.6103,
+    "tier": "chaos"
+  },
+  {
+    "name": "Yakutsk, Russia",
+    "displayName": "Yakutsk",
+    "sourceName": "Yakutsk",
+    "country": "Russia",
+    "lat": 62.0355,
+    "lng": 129.6755,
+    "tier": "chaos"
+  },
+  {
+    "name": "Iqaluit, Canada",
+    "displayName": "Iqaluit",
+    "sourceName": "Iqaluit",
+    "country": "Canada",
+    "lat": 63.7467,
+    "lng": -68.517,
+    "tier": "chaos"
+  },
+  {
+    "name": "Longyearbyen, Norway",
+    "displayName": "Longyearbyen",
+    "sourceName": "Longyearbyen",
+    "country": "Norway",
+    "lat": 78.2232,
+    "lng": 15.6267,
+    "tier": "chaos"
+  },
+  {
+    "name": "Tórshavn, Faroe Islands",
+    "displayName": "Tórshavn",
+    "sourceName": "Tórshavn",
+    "country": "Faroe Islands",
+    "lat": 62.0079,
+    "lng": -6.79,
+    "tier": "chaos"
+  },
+  {
+    "name": "Stanley, Falkland Islands",
+    "displayName": "Stanley",
+    "sourceName": "Stanley",
+    "country": "Falkland Islands",
+    "lat": -51.6938,
+    "lng": -57.8517,
+    "tier": "chaos"
+  },
+  {
+    "name": "Dili, Timor-Leste",
+    "displayName": "Dili",
+    "sourceName": "Dili",
+    "country": "Timor-Leste",
+    "lat": -8.5569,
+    "lng": 125.5603,
+    "tier": "chaos"
+  },
+  {
+    "name": "Paramaribo, Suriname",
+    "displayName": "Paramaribo",
+    "sourceName": "Paramaribo",
+    "country": "Suriname",
+    "lat": 5.852,
+    "lng": -55.2038,
+    "tier": "chaos"
+  },
+  {
+    "name": "Georgetown, Guyana",
+    "displayName": "Georgetown",
+    "sourceName": "Georgetown",
+    "country": "Guyana",
+    "lat": 6.8013,
+    "lng": -58.1551,
+    "tier": "chaos"
+  },
+  {
+    "name": "Asmara, Eritrea",
+    "displayName": "Asmara",
+    "sourceName": "Asmara",
+    "country": "Eritrea",
+    "lat": 15.3229,
+    "lng": 38.9251,
+    "tier": "chaos"
+  },
+  {
+    "name": "Djibouti, Djibouti",
+    "displayName": "Djibouti",
+    "sourceName": "Djibouti",
+    "country": "Djibouti",
+    "lat": 11.8251,
+    "lng": 42.5903,
+    "tier": "chaos"
+  },
+  {
+    "name": "Bissau, Guinea-Bissau",
+    "displayName": "Bissau",
+    "sourceName": "Bissau",
+    "country": "Guinea-Bissau",
+    "lat": 11.8636,
+    "lng": -15.5977,
+    "tier": "chaos"
+  },
+  {
+    "name": "Praia, Cape Verde",
+    "displayName": "Praia",
+    "sourceName": "Praia",
+    "country": "Cape Verde",
+    "lat": 14.933,
+    "lng": -23.5133,
+    "tier": "chaos"
+  },
+  {
+    "name": "Banjul, Gambia",
+    "displayName": "Banjul",
+    "sourceName": "Banjul",
+    "country": "Gambia",
+    "lat": 13.4549,
+    "lng": -16.579,
+    "tier": "chaos"
+  },
+  {
+    "name": "Conakry, Guinea",
+    "displayName": "Conakry",
+    "sourceName": "Conakry",
+    "country": "Guinea",
+    "lat": 9.6412,
+    "lng": -13.5784,
+    "tier": "chaos"
+  },
+  {
+    "name": "Freetown, Sierra Leone",
+    "displayName": "Freetown",
+    "sourceName": "Freetown",
+    "country": "Sierra Leone",
+    "lat": 8.4657,
+    "lng": -13.2317,
+    "tier": "chaos"
+  },
+  {
+    "name": "Monrovia, Liberia",
+    "displayName": "Monrovia",
+    "sourceName": "Monrovia",
+    "country": "Liberia",
+    "lat": 6.3007,
+    "lng": -10.7969,
+    "tier": "chaos"
+  },
+  {
+    "name": "Timbuktu, Mali",
+    "displayName": "Timbuktu",
+    "sourceName": "Timbuktu",
+    "country": "Mali",
+    "lat": 16.7666,
+    "lng": -3.0026,
+    "tier": "chaos"
+  },
+  {
+    "name": "Agadez, Niger",
+    "displayName": "Agadez",
+    "sourceName": "Agadez",
+    "country": "Niger",
+    "lat": 16.9742,
+    "lng": 7.9909,
+    "tier": "chaos"
+  },
+  {
+    "name": "N'Djamena, Chad",
+    "displayName": "N'Djamena",
+    "sourceName": "N'Djamena",
+    "country": "Chad",
+    "lat": 12.1348,
+    "lng": 15.0557,
+    "tier": "chaos"
+  },
+  {
+    "name": "Bangui, Central African Republic",
+    "displayName": "Bangui",
+    "sourceName": "Bangui",
+    "country": "Central African Republic",
+    "lat": 4.3947,
+    "lng": 18.5582,
+    "tier": "chaos"
+  },
+  {
+    "name": "Malabo, Equatorial Guinea",
+    "displayName": "Malabo",
+    "sourceName": "Malabo",
+    "country": "Equatorial Guinea",
+    "lat": 3.7523,
+    "lng": 8.7742,
+    "tier": "chaos"
+  },
+  {
+    "name": "São Tomé, São Tomé and Príncipe",
+    "displayName": "São Tomé",
+    "sourceName": "São Tomé",
+    "country": "São Tomé and Príncipe",
+    "lat": 0.3302,
+    "lng": 6.7333,
+    "tier": "chaos"
+  },
+  {
+    "name": "Moroni, Comoros",
+    "displayName": "Moroni",
+    "sourceName": "Moroni",
+    "country": "Comoros",
+    "lat": -11.7172,
+    "lng": 43.2473,
+    "tier": "chaos"
+  },
+  {
+    "name": "Antsiranana, Madagascar",
+    "displayName": "Antsiranana",
+    "sourceName": "Antsiranana",
+    "country": "Madagascar",
+    "lat": -12.2787,
+    "lng": 49.2917,
+    "tier": "chaos"
+  },
+  {
+    "name": "Windhoek, Namibia",
+    "displayName": "Windhoek",
+    "sourceName": "Windhoek",
+    "country": "Namibia",
+    "lat": -22.5609,
+    "lng": 17.0658,
+    "tier": "chaos"
+  },
+  {
+    "name": "Gaborone, Botswana",
+    "displayName": "Gaborone",
+    "sourceName": "Gaborone",
+    "country": "Botswana",
+    "lat": -24.6282,
+    "lng": 25.9231,
+    "tier": "chaos"
+  },
+  {
+    "name": "Maseru, Lesotho",
+    "displayName": "Maseru",
+    "sourceName": "Maseru",
+    "country": "Lesotho",
+    "lat": -29.3151,
+    "lng": 27.4869,
+    "tier": "chaos"
+  },
+  {
+    "name": "Mbabane, Eswatini",
+    "displayName": "Mbabane",
+    "sourceName": "Mbabane",
+    "country": "Eswatini",
+    "lat": -26.3054,
+    "lng": 31.1367,
+    "tier": "chaos"
+  },
+  {
+    "name": "Juba, South Sudan",
+    "displayName": "Juba",
+    "sourceName": "Juba",
+    "country": "South Sudan",
+    "lat": 4.8517,
+    "lng": 31.5825,
+    "tier": "chaos"
+  },
+  {
+    "name": "Hargeisa, Somaliland",
+    "displayName": "Hargeisa",
+    "sourceName": "Hargeisa",
+    "country": "Somaliland",
+    "lat": 9.56,
+    "lng": 44.065,
+    "tier": "chaos"
+  },
+  {
+    "name": "Lhasa, China",
+    "displayName": "Lhasa",
+    "sourceName": "Lhasa",
+    "country": "China",
+    "lat": 29.65,
+    "lng": 91.1,
+    "tier": "chaos"
+  },
+  {
+    "name": "Urumqi, China",
+    "displayName": "Urumqi",
+    "sourceName": "Urumqi",
+    "country": "China",
+    "lat": 43.8256,
+    "lng": 87.6168,
+    "tier": "chaos"
+  },
+  {
+    "name": "Kashgar, China",
+    "displayName": "Kashgar",
+    "sourceName": "Kashgar",
+    "country": "China",
+    "lat": 39.4704,
+    "lng": 75.9898,
+    "tier": "chaos"
+  },
+  {
+    "name": "Thimphu, Bhutan",
+    "displayName": "Thimphu",
+    "sourceName": "Thimphu",
+    "country": "Bhutan",
+    "lat": 27.4716,
+    "lng": 89.6386,
+    "tier": "chaos"
+  },
+  {
+    "name": "Paro, Bhutan",
+    "displayName": "Paro",
+    "sourceName": "Paro",
+    "country": "Bhutan",
+    "lat": 27.4287,
+    "lng": 89.4164,
+    "tier": "chaos"
+  },
+  {
+    "name": "Vientiane, Laos",
+    "displayName": "Vientiane",
+    "sourceName": "Vientiane",
+    "country": "Laos",
+    "lat": 17.9757,
+    "lng": 102.6331,
+    "tier": "chaos"
+  },
+  {
+    "name": "Naypyidaw, Myanmar",
+    "displayName": "Naypyidaw",
+    "sourceName": "Naypyidaw",
+    "country": "Myanmar",
+    "lat": 19.7633,
+    "lng": 96.0785,
+    "tier": "chaos"
+  },
+  {
+    "name": "Bandar Seri Begawan, Brunei",
+    "displayName": "Bandar Seri Begawan",
+    "sourceName": "Bandar Seri Begawan",
+    "country": "Brunei",
+    "lat": 4.9031,
+    "lng": 114.9398,
+    "tier": "chaos"
+  },
+  {
+    "name": "Dushanbe, Tajikistan",
+    "displayName": "Dushanbe",
+    "sourceName": "Dushanbe",
+    "country": "Tajikistan",
+    "lat": 38.5598,
+    "lng": 68.787,
+    "tier": "chaos"
+  },
+  {
+    "name": "Bishkek, Kyrgyzstan",
+    "displayName": "Bishkek",
+    "sourceName": "Bishkek",
+    "country": "Kyrgyzstan",
+    "lat": 42.8746,
+    "lng": 74.5698,
+    "tier": "chaos"
+  },
+  {
+    "name": "Ashgabat, Turkmenistan",
+    "displayName": "Ashgabat",
+    "sourceName": "Ashgabat",
+    "country": "Turkmenistan",
+    "lat": 37.9601,
+    "lng": 58.3261,
+    "tier": "chaos"
+  },
+  {
+    "name": "Ulaanbaatar, Mongolia",
+    "displayName": "Ulaanbaatar",
+    "sourceName": "Ulaanbaatar",
+    "country": "Mongolia",
+    "lat": 47.8864,
+    "lng": 106.9057,
+    "tier": "chaos"
+  },
+  {
+    "name": "Astana, Kazakhstan",
+    "displayName": "Astana",
+    "sourceName": "Astana",
+    "country": "Kazakhstan",
+    "lat": 51.1605,
+    "lng": 71.4704,
+    "tier": "chaos"
+  },
+  {
+    "name": "Almaty, Kazakhstan",
+    "displayName": "Almaty",
+    "sourceName": "Almaty",
+    "country": "Kazakhstan",
+    "lat": 43.2389,
+    "lng": 76.8897,
+    "tier": "chaos"
+  },
+  {
+    "name": "Malé, Maldives",
+    "displayName": "Malé",
+    "sourceName": "Malé",
+    "country": "Maldives",
+    "lat": 4.1755,
+    "lng": 73.5093,
+    "tier": "chaos"
+  },
+  {
+    "name": "Port Moresby, Papua New Guinea",
+    "displayName": "Port Moresby",
+    "sourceName": "Port Moresby",
+    "country": "Papua New Guinea",
+    "lat": -9.4438,
+    "lng": 147.1803,
+    "tier": "chaos"
+  },
+  {
+    "name": "Honiara, Solomon Islands",
+    "displayName": "Honiara",
+    "sourceName": "Honiara",
+    "country": "Solomon Islands",
+    "lat": -9.4456,
+    "lng": 159.9729,
+    "tier": "chaos"
+  },
+  {
+    "name": "Suva, Fiji",
+    "displayName": "Suva",
+    "sourceName": "Suva",
+    "country": "Fiji",
+    "lat": -18.1416,
+    "lng": 178.4419,
+    "tier": "chaos"
+  },
+  {
+    "name": "Apia, Samoa",
+    "displayName": "Apia",
+    "sourceName": "Apia",
+    "country": "Samoa",
+    "lat": -13.8506,
+    "lng": -171.7513,
+    "tier": "chaos"
+  },
+  {
+    "name": "Nukuʻalofa, Tonga",
+    "displayName": "Nukuʻalofa",
+    "sourceName": "Nukuʻalofa",
+    "country": "Tonga",
+    "lat": -21.1394,
+    "lng": -175.2049,
+    "tier": "chaos"
+  },
+  {
+    "name": "Port Vila, Vanuatu",
+    "displayName": "Port Vila",
+    "sourceName": "Port Vila",
+    "country": "Vanuatu",
+    "lat": -17.7404,
+    "lng": 168.322,
+    "tier": "chaos"
+  },
+  {
+    "name": "Palikir, Micronesia",
+    "displayName": "Palikir",
+    "sourceName": "Palikir",
+    "country": "Micronesia",
+    "lat": 6.9248,
+    "lng": 158.1611,
+    "tier": "chaos"
+  },
+  {
+    "name": "Majuro, Marshall Islands",
+    "displayName": "Majuro",
+    "sourceName": "Majuro",
+    "country": "Marshall Islands",
+    "lat": 7.0894,
+    "lng": 171.3803,
+    "tier": "chaos"
+  },
+  {
+    "name": "Tarawa, Kiribati",
+    "displayName": "Tarawa",
+    "sourceName": "Tarawa",
+    "country": "Kiribati",
+    "lat": 1.3382,
+    "lng": 172.9759,
+    "tier": "chaos"
+  },
+  {
+    "name": "Funafuti, Tuvalu",
+    "displayName": "Funafuti",
+    "sourceName": "Funafuti",
+    "country": "Tuvalu",
+    "lat": -8.5243,
+    "lng": 179.1942,
+    "tier": "chaos"
+  },
+  {
+    "name": "Nuuk, Greenland",
+    "displayName": "Nuuk",
+    "sourceName": "Nuuk",
+    "country": "Greenland",
+    "lat": 64.1836,
+    "lng": -51.7214,
+    "tier": "chaos"
+  },
+  {
+    "name": "Kangerlussuaq, Greenland",
+    "displayName": "Kangerlussuaq",
+    "sourceName": "Kangerlussuaq",
+    "country": "Greenland",
+    "lat": 67.0067,
+    "lng": -50.6892,
+    "tier": "chaos"
+  },
+  {
+    "name": "Ushuaia, Argentina",
+    "displayName": "Ushuaia",
+    "sourceName": "Ushuaia",
+    "country": "Argentina",
+    "lat": -54.8019,
+    "lng": -68.303,
+    "tier": "chaos"
+  },
+  {
+    "name": "Punta Arenas, Chile",
+    "displayName": "Punta Arenas",
+    "sourceName": "Punta Arenas",
+    "country": "Chile",
+    "lat": -53.1638,
+    "lng": -70.9171,
+    "tier": "chaos"
+  },
+  {
+    "name": "Hanga Roa, Chile",
+    "displayName": "Hanga Roa",
+    "sourceName": "Hanga Roa",
+    "country": "Chile",
+    "lat": -27.15,
+    "lng": -109.4333,
+    "tier": "chaos"
+  },
+  {
+    "name": "Potosí, Bolivia",
+    "displayName": "Potosí",
+    "sourceName": "Potosí",
+    "country": "Bolivia",
+    "lat": -19.5836,
+    "lng": -65.7531,
+    "tier": "chaos"
+  },
+  {
+    "name": "Sucre, Bolivia",
+    "displayName": "Sucre",
+    "sourceName": "Sucre",
+    "country": "Bolivia",
+    "lat": -19.0196,
+    "lng": -65.2619,
+    "tier": "chaos"
+  },
+  {
+    "name": "Iquitos, Peru",
+    "displayName": "Iquitos",
+    "sourceName": "Iquitos",
+    "country": "Peru",
+    "lat": -3.7437,
+    "lng": -73.2516,
+    "tier": "chaos"
+  },
+  {
+    "name": "Leticia, Colombia",
+    "displayName": "Leticia",
+    "sourceName": "Leticia",
+    "country": "Colombia",
+    "lat": -4.215,
+    "lng": -69.9406,
+    "tier": "chaos"
+  },
+  {
+    "name": "Cayenne, French Guiana",
+    "displayName": "Cayenne",
+    "sourceName": "Cayenne",
+    "country": "French Guiana",
+    "lat": 4.9224,
+    "lng": -52.3135,
+    "tier": "chaos"
+  },
+  {
+    "name": "Oranjestad, Aruba",
+    "displayName": "Oranjestad",
+    "sourceName": "Oranjestad",
+    "country": "Aruba",
+    "lat": 12.5211,
+    "lng": -70.0353,
+    "tier": "chaos"
+  },
+  {
+    "name": "Willemstad, Curaçao",
+    "displayName": "Willemstad",
+    "sourceName": "Willemstad",
+    "country": "Curaçao",
+    "lat": 12.1098,
+    "lng": -68.9335,
+    "tier": "chaos"
+  },
+  {
+    "name": "Road Town, British Virgin Islands",
+    "displayName": "Road Town",
+    "sourceName": "Road Town",
+    "country": "British Virgin Islands",
+    "lat": 18.4267,
+    "lng": -64.6231,
+    "tier": "chaos"
+  },
+  {
+    "name": "Basseterre, Saint Kitts and Nevis",
+    "displayName": "Basseterre",
+    "sourceName": "Basseterre",
+    "country": "Saint Kitts and Nevis",
+    "lat": 17.2955,
+    "lng": -62.7261,
+    "tier": "chaos"
+  },
+  {
+    "name": "Castries, Saint Lucia",
+    "displayName": "Castries",
+    "sourceName": "Castries",
+    "country": "Saint Lucia",
+    "lat": 14.0101,
+    "lng": -60.9874,
+    "tier": "chaos"
+  },
+  {
+    "name": "Roseau, Dominica",
+    "displayName": "Roseau",
+    "sourceName": "Roseau",
+    "country": "Dominica",
+    "lat": 15.3092,
+    "lng": -61.3794,
+    "tier": "chaos"
+  },
+  {
+    "name": "St. George's, Grenada",
+    "displayName": "St. George's",
+    "sourceName": "St. George's",
+    "country": "Grenada",
+    "lat": 12.0561,
+    "lng": -61.7488,
+    "tier": "chaos"
+  },
+  {
+    "name": "Kingstown, Saint Vincent and the Grenadines",
+    "displayName": "Kingstown",
+    "sourceName": "Kingstown",
+    "country": "Saint Vincent and the Grenadines",
+    "lat": 13.1567,
+    "lng": -61.2248,
+    "tier": "chaos"
+  },
+  {
+    "name": "Belmopan, Belize",
+    "displayName": "Belmopan",
+    "sourceName": "Belmopan",
+    "country": "Belize",
+    "lat": 17.251,
+    "lng": -88.759,
+    "tier": "chaos"
+  },
+  {
+    "name": "Tegucigalpa, Honduras",
+    "displayName": "Tegucigalpa",
+    "sourceName": "Tegucigalpa",
+    "country": "Honduras",
+    "lat": 14.0723,
+    "lng": -87.1921,
+    "tier": "chaos"
+  },
+  {
+    "name": "Managua, Nicaragua",
+    "displayName": "Managua",
+    "sourceName": "Managua",
+    "country": "Nicaragua",
+    "lat": 12.1149,
+    "lng": -86.2362,
+    "tier": "chaos"
+  },
+  {
+    "name": "Saint-Pierre, Saint Pierre and Miquelon",
+    "displayName": "Saint-Pierre",
+    "sourceName": "Saint-Pierre",
+    "country": "Saint Pierre and Miquelon",
+    "lat": 46.7811,
+    "lng": -56.1714,
+    "tier": "chaos"
+  },
+  {
+    "name": "Hamilton, Bermuda",
+    "displayName": "Hamilton",
+    "sourceName": "Hamilton",
+    "country": "Bermuda",
+    "lat": 32.2949,
+    "lng": -64.7822,
+    "tier": "chaos"
+  },
+  {
+    "name": "Jamestown, Saint Helena",
+    "displayName": "Jamestown",
+    "sourceName": "Jamestown",
+    "country": "Saint Helena",
+    "lat": -15.9387,
+    "lng": -5.7177,
+    "tier": "chaos"
+  },
+  {
+    "name": "Avarua, Cook Islands",
+    "displayName": "Avarua",
+    "sourceName": "Avarua",
+    "country": "Cook Islands",
+    "lat": -21.2074,
+    "lng": -159.7746,
+    "tier": "chaos"
+  },
+  {
+    "name": "Adamstown, Pitcairn Islands",
+    "displayName": "Adamstown",
+    "sourceName": "Adamstown",
+    "country": "Pitcairn Islands",
+    "lat": -25.0664,
+    "lng": -130.0995,
+    "tier": "chaos"
+  },
+  {
+    "name": "Alofi, Niue",
+    "displayName": "Alofi",
+    "sourceName": "Alofi",
+    "country": "Niue",
+    "lat": -19.0556,
+    "lng": -169.9171,
+    "tier": "chaos"
+  },
+  {
+    "name": "Mata-Utu, Wallis and Futuna",
+    "displayName": "Mata-Utu",
+    "sourceName": "Mata-Utu",
+    "country": "Wallis and Futuna",
+    "lat": -13.2825,
+    "lng": -176.1745,
+    "tier": "chaos"
+  }
+]
