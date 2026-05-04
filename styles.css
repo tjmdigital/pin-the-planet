@@ -3575,3 +3575,28 @@ body.join-link-mode .site-footer { display: none; }
     padding: 0 !important;
   }
 }
+
+/* v90 - last-resort mobile overlay fix
+   Suspicion: iOS Safari was applying its automatic text-size-adjust
+   inflation to the daily-mode panel because the questions array (with
+   country geometry) made the page "look like a content document" to
+   its heuristic. Force text size adjust to 100% on overlay children. */
+@media (max-width: 860px) {
+  .map-overlay,
+  .map-overlay * {
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+  }
+  /* Also belt-and-braces: anchor the panel to viewport units so the
+     parent container's width can't drag it out of bounds. */
+  .map-overlay {
+    left: 12px !important;
+    right: 12px !important;
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    transform: none !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+}
