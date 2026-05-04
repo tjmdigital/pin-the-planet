@@ -3470,3 +3470,62 @@ body.join-link-mode .site-footer { display: none; }
     line-height: 1.3 !important;
   }
 }
+
+/* v88 mobile - floating leave-game button + tighter daily overlay */
+
+/* Floating Leave button on mobile during games. The header's existing
+   leave button is sticky, but it scrolls off-screen on phones because
+   the map fills the viewport. This gives every player (not just the
+   host) an always-visible exit. */
+@media (max-width: 860px) {
+  body.in-game #leaveBtn {
+    position: fixed;
+    top: max(env(safe-area-inset-top, 8px), 8px);
+    right: 10px;
+    z-index: 1500;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    background: rgba(20, 26, 48, 0.92);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #fff;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    /* Make it shorter so it doesn't fight with the URL bar */
+    line-height: 1.1;
+  }
+  body.in-game #leaveBtn::before {
+    content: "✕ ";
+    margin-right: 2px;
+    font-weight: 900;
+  }
+}
+
+/* Even tighter overlay rules for daily mode and very long question
+   names ("Democratic Republic of the Congo", "Saint Vincent and the
+   Grenadines", etc). Reduces .target font-size further on small phones
+   and gives the panel a small max-width safety margin. */
+@media (max-width: 430px) {
+  .map-overlay {
+    /* Ensure the panel never exceeds viewport - was relying on
+       calc(100% - inset*2) which depends on parent width */
+    max-width: calc(100vw - 24px) !important;
+    padding: 7px 10px !important;
+  }
+  .map-overlay .target,
+  .map-overlay #targetName {
+    font-size: clamp(15px, 5vw, 22px) !important;
+    line-height: 1.1 !important;
+    word-break: break-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+  }
+  .map-overlay .small,
+  .map-overlay #roundState,
+  .map-overlay #playerHint {
+    font-size: 11.5px !important;
+    line-height: 1.3 !important;
+  }
+}
