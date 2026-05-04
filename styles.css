@@ -3291,6 +3291,9 @@ body.round-revealed-state .answer-pin {
 
 /* v82 daily challenge card */
 .daily-card {
+  /* Sits above both columns of the landing shell (.landing-shell is a
+     2-column grid: hero + join panel). Span full width. */
+  grid-column: 1 / -1;
   display: grid;
   gap: 14px;
   padding: 18px 20px;
