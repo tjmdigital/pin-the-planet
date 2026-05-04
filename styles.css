@@ -3419,6 +3419,12 @@ body.join-link-mode .daily-card { display: none; }
 .site-footer-credit { margin: 0; text-align: center; font-size: 12px; }
 .site-footer-credit a { color: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.2); }
 .site-footer-credit a:hover { text-decoration-color: rgba(255,255,255,0.6); }
+.site-footer-author {
+  font-weight: 700;
+  color: #c6d0ff !important;
+  text-decoration-color: rgba(198, 208, 255, 0.4) !important;
+}
+.site-footer-author:hover { text-decoration-color: rgba(198, 208, 255, 0.9) !important; }
 
 /* Hide the home footer when actually in a game so the map/UI gets the
    full screen, and during the join-link flow so the join card stays
