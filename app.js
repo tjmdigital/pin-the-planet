@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v85-author-credit";
+const PTP_APP_VERSION = "v86-human-dates";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -2492,7 +2492,7 @@ function renderFinalMapOverlay() {
       <div class="final-board-header">
         <div class="final-board-kicker">${dailyIsNewBestForDay ? "🏆 New best for today" : "🌍 Daily challenge complete"}</div>
         <div class="final-board-title">${soloScore.toLocaleString()}<span class="daily-of-max"> / ${dailyMaxScore.toLocaleString()}</span></div>
-        <div class="final-board-subtitle">${dailyDateKey ? `Daily pack for ${dailyDateKey}` : "Daily pack"}. Same questions for every player today.</div>
+        <div class="final-board-subtitle">${dailyDateKey ? `Daily pack for ${formatDailyDateForDisplay(dailyDateKey)}` : "Daily pack"}. Same questions for every player today.</div>
       </div>
       <div class="final-board-list final-board-list-solo">
         <div class="final-board-row champion solo">
@@ -3135,6 +3135,26 @@ function todayUtcDateString() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// Turn an ISO date ("2026-05-04") into something a human reads
+// without flinching ("Monday, 4 May"). Locale-aware so US / UK / EU
+// users each see their preferred format. Falls back to the raw ISO
+// string if the input is junk.
+function formatDailyDateForDisplay(isoDate) {
+  if (!isoDate || typeof isoDate !== "string") return "today";
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return isoDate;
+  try {
+    return d.toLocaleDateString(undefined, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      timeZone: "UTC"
+    });
+  } catch (error) {
+    return isoDate;
+  }
+}
+
 function dateBefore(dateStr) {
   const d = new Date(`${dateStr}T00:00:00Z`);
   if (Number.isNaN(d.getTime())) return null;
@@ -3497,7 +3517,7 @@ function renderDailyCard() {
   const btn = $("playDailyBtn");
   const chip = $("dailyStreakChip");
 
-  if (titleEl) titleEl.textContent = `Today's pack — ${today}`;
+  if (titleEl) titleEl.textContent = `Today's pack · ${formatDailyDateForDisplay(today)}`;
   if (subtitleEl) subtitleEl.textContent = "5 cities, 5 countries · same questions for every player today.";
 
   if (playedToday) {
