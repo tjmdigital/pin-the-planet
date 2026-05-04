@@ -3609,16 +3609,19 @@ body.join-link-mode .site-footer { display: none; }
 @media (max-width: 860px) {
   .map-overlay {
     position: absolute !important;
-    top: 12px !important;
-    left: 12px !important;
-    right: 12px !important;
+    top: 14px !important;
+    left: 14px !important;
+    right: 14px !important;
     bottom: auto !important;
     width: auto !important;
     max-width: none !important;
     transform: none !important;
     margin: 0 !important;
+    /* Internal padding so the text isn't tight against the panel edge */
+    padding: 12px 16px !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
+    border-radius: 16px !important;
   }
   .map-overlay,
   .map-overlay * {
@@ -3637,28 +3640,43 @@ body.join-link-mode .site-footer { display: none; }
   body.in-game .mobile-leave-btn {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
     position: fixed;
-    top: max(env(safe-area-inset-top, 0px) + 8px, 12px);
-    right: 10px;
+    top: calc(env(safe-area-inset-top, 0px) + 14px);
+    right: 14px;
     z-index: 5000;
-    padding: 7px 12px;
-    font-size: 13px;
-    font-weight: 800;
-    border-radius: 999px;
-    background: rgba(15, 22, 44, 0.94);
+    padding: 9px 14px;
+    min-height: 38px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font, inherit);
+    letter-spacing: -0.01em;
+    border-radius: 12px;
+    background: rgba(15, 22, 44, 0.78);
     color: #fff;
-    border: 1px solid rgba(255,255,255,0.22);
-    box-shadow: 0 8px 22px rgba(0,0,0,0.5);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    line-height: 1.1;
+    border: 1px solid rgba(255,255,255,0.16);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset;
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    line-height: 1;
     cursor: pointer;
     text-decoration: none;
     pointer-events: auto;
     -webkit-tap-highlight-color: transparent;
+    transition: background 0.16s ease, transform 0.12s ease;
+  }
+  body.in-game .mobile-leave-btn:hover {
+    background: rgba(28, 38, 72, 0.88);
   }
   body.in-game .mobile-leave-btn:active {
-    background: rgba(30, 38, 70, 0.96);
+    background: rgba(40, 52, 92, 0.94);
+    transform: scale(0.97);
+  }
+  body.in-game .mobile-leave-btn .leave-icon {
+    font-size: 12px;
+    opacity: 0.7;
+    font-weight: 900;
+    margin-top: -1px;
   }
 }

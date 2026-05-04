@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v91-parent-panel-mobile-leave";
+const PTP_APP_VERSION = "v92-fonts-reflow-padding";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1173,6 +1173,11 @@ function showGameScreen() {
   setTimeout(() => {
     initMap();
     if (state.map) state.map.invalidateSize();
+    // Force the overlay panel to re-layout once we're definitely past
+    // the initial render. Fixes the daily-mode race where the panel
+    // wrapped text against a fallback font that was swapped out
+    // before the first render committed.
+    scheduleOverlayReflowAfterFonts();
   }, 50);
 }
 
@@ -1188,11 +1193,47 @@ function ensureMobileLeaveButton() {
   btn.type = "button";
   btn.className = "mobile-leave-btn";
   btn.setAttribute("aria-label", "Leave game");
-  btn.innerHTML = "✕ Leave";
+  btn.innerHTML = `<span class="leave-icon" aria-hidden="true">✕</span><span>Leave</span>`;
   btn.addEventListener("click", () => {
     if (typeof leaveGame === "function") leaveGame(true);
   });
   document.body.appendChild(btn);
+}
+
+// Force a layout reflow on the .map-overlay panel after web fonts have
+// finished loading. Daily mode's async API fetch delays the first
+// render past a different point in font loading than solo, which left
+// the panel measuring text against the system fallback font (slightly
+// wider) and not re-measuring when the real font swapped in. The
+// "change font-size and back" inspector trick fixed it because that
+// triggers a fresh layout pass; doing the same here means we don't
+// rely on the user noticing.
+function forcePanelReflow() {
+  const panel = document.querySelector(".map-overlay");
+  if (!panel) return;
+  // Toggle a CSS property that forces layout recalc without a
+  // visible flash. Reading offsetHeight after the change forces
+  // the browser to commit the reflow synchronously.
+  const prev = panel.style.letterSpacing;
+  panel.style.letterSpacing = "0.0001em";
+  void panel.offsetHeight;
+  panel.style.letterSpacing = prev;
+  void panel.offsetHeight;
+}
+
+function scheduleOverlayReflowAfterFonts() {
+  if (typeof document === "undefined") return;
+  // Always run once after the next animation frame in case fonts are
+  // already loaded.
+  requestAnimationFrame(() => forcePanelReflow());
+  if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === "function") {
+    document.fonts.ready.then(() => {
+      forcePanelReflow();
+      // Belt-and-braces: one more after the next paint so any size
+      // changes from late-loading fonts are picked up.
+      requestAnimationFrame(() => forcePanelReflow());
+    }).catch(() => {});
+  }
 }
 
 function setBaseMapLayer(mode = "hardcore") {
