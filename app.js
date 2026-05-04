@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v90-text-size-adjust";
+const PTP_APP_VERSION = "v91-parent-panel-mobile-leave";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1162,6 +1162,7 @@ function showGameScreen() {
   $("homeScreen").classList.add("hidden");
   $("gameScreen").classList.remove("hidden");
   $("leaveBtn").classList.remove("hidden");
+  ensureMobileLeaveButton();
 
   // Important on mobile: users often start from a scrolled landing page.
   // Jump to the game top so the map/question panel is visible immediately.
@@ -1173,6 +1174,25 @@ function showGameScreen() {
     initMap();
     if (state.map) state.map.invalidateSize();
   }, 50);
+}
+
+// Ensure a dedicated, viewport-pinned Leave button exists for mobile.
+// The header's leaveBtn is sticky inside the header, which can get
+// covered by browser chrome or scroll oddly on iOS. This standalone
+// button lives directly in <body> so position:fixed always works.
+function ensureMobileLeaveButton() {
+  let btn = document.getElementById("mobileLeaveBtn");
+  if (btn) return;
+  btn = document.createElement("button");
+  btn.id = "mobileLeaveBtn";
+  btn.type = "button";
+  btn.className = "mobile-leave-btn";
+  btn.setAttribute("aria-label", "Leave game");
+  btn.innerHTML = "✕ Leave";
+  btn.addEventListener("click", () => {
+    if (typeof leaveGame === "function") leaveGame(true);
+  });
+  document.body.appendChild(btn);
 }
 
 function setBaseMapLayer(mode = "hardcore") {

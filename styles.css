@@ -3600,3 +3600,65 @@ body.join-link-mode .site-footer { display: none; }
     overflow: hidden !important;
   }
 }
+
+/* v91 panel = parent-relative + dedicated leave button
+   Switching to left:12 + right:12 + width:auto guarantees the panel
+   never exceeds .map-card. The previous calc(100vw - 24px) was
+   width-from-viewport, which let it exceed the parent's content box
+   and get visually clipped by overflow:hidden. */
+@media (max-width: 860px) {
+  .map-overlay {
+    position: absolute !important;
+    top: 12px !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: none !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+  .map-overlay,
+  .map-overlay * {
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+  }
+}
+
+/* Dedicated mobile leave-game button. Floats on top of everything,
+   independent of the header's sticky behaviour. Only visible during
+   a game on mobile. */
+.mobile-leave-btn {
+  display: none;
+}
+@media (max-width: 860px) {
+  body.in-game .mobile-leave-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    position: fixed;
+    top: max(env(safe-area-inset-top, 0px) + 8px, 12px);
+    right: 10px;
+    z-index: 5000;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 800;
+    border-radius: 999px;
+    background: rgba(15, 22, 44, 0.94);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.22);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    line-height: 1.1;
+    cursor: pointer;
+    text-decoration: none;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body.in-game .mobile-leave-btn:active {
+    background: rgba(30, 38, 70, 0.96);
+  }
+}
