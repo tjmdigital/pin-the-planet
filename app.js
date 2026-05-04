@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v81-new-og-image";
+const PTP_APP_VERSION = "v82-daily-challenge";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1272,6 +1272,120 @@ async function submitGuess() {
   toast("Pin placed - tap elsewhere to move it");
 }
 
+// Play today's daily challenge. Solo only. Settings (rounds/timer/map)
+// are locked so every player on the same UTC day plays an identical
+// challenge - lets us compare scores fairly. Tone respects the user's
+// saved preference (it only affects banter copy, not scoring).
+async function playDailyChallenge() {
+  if (!isFirebaseConfigured) {
+    toast("Paste Firebase config first");
+    return;
+  }
+  if (state.dailyLoading) return;
+  state.dailyLoading = true;
+
+  const btn = $("playDailyBtn");
+  if (btn) {
+    btn.disabled = true;
+    btn.dataset.prevText = btn.textContent;
+    btn.textContent = "Loading today's challenge...";
+  }
+  showLoading("Loading today's challenge", "Today's pack is the same for every player.");
+
+  let payload;
+  try {
+    const response = await fetch("/api/questions?daily=1", { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error(`Daily API ${response.status}`);
+    payload = await response.json();
+  } catch (error) {
+    toast("Couldn't load today's challenge. Try again in a moment.");
+    if (btn) { btn.disabled = false; btn.textContent = btn.dataset.prevText || "Play today's challenge"; }
+    state.dailyLoading = false;
+    hideLoading();
+    return;
+  }
+
+  const questions = Array.isArray(payload.questions) ? payload.questions : [];
+  const dailyDate = String(payload.dailyDate || todayUtcDateString());
+  if (!questions.length) {
+    toast("No daily questions returned. Try again later.");
+    if (btn) { btn.disabled = false; btn.textContent = btn.dataset.prevText || "Play today's challenge"; }
+    state.dailyLoading = false;
+    hideLoading();
+    return;
+  }
+
+  const userTone = $("toneMode")?.value || state.game?.toneMode || "lads";
+  const rawHostName = $("hostName")?.value?.trim();
+  const hostName = !rawHostName || rawHostName.toLowerCase() === "quiz host" ? "You" : rawHostName;
+
+  const code = roomCode();
+  const playerId = `host_${uid()}`;
+  const game = {
+    code,
+    createdAt: Date.now(),
+    hostId: playerId,
+    hostName,
+    questions,
+    // Locked daily settings for fair comparison.
+    roundsRequested: questions.length,
+    practiceEnabled: false,
+    questionType: "daily",
+    cityDifficulty: "mixed",
+    mapMode: "hardcore",
+    toneMode: userTone,
+    scoringMode: "distance",
+    singlePlayer: true,
+    dailyChallenge: true,
+    dailyDate,
+    currentRound: 0,
+    acceptingGuesses: false,
+    revealed: false,
+    started: false,
+    roundDurationSeconds: 30,
+    roundStartedAt: null,
+    roundEndsAt: null,
+    roundClosedAt: null,
+    roundClosedReason: null,
+    roundPlayerIds: null
+  };
+
+  state.lastCreateOptions = {
+    isSinglePlayer: true,
+    dailyChallenge: true,
+    dailyDate,
+    questionType: "daily",
+    roundsRequested: questions.length,
+    createdAt: Date.now()
+  };
+
+  try {
+    await set(ref(db, `games/${code}`), game);
+    await set(ref(db, `games/${code}/players/${playerId}`), {
+      name: hostName,
+      avatar: randomAvatar(),
+      total: 0,
+      isHost: true,
+      joinedAt: Date.now(),
+      online: true
+    });
+    onDisconnect(ref(db, `games/${code}/players/${playerId}/online`)).set(false);
+  } catch (error) {
+    toast("Couldn't start today's challenge. Try again.");
+    if (btn) { btn.disabled = false; btn.textContent = btn.dataset.prevText || "Play today's challenge"; }
+    state.dailyLoading = false;
+    hideLoading();
+    return;
+  }
+
+  trackEvent?.("daily_challenge_started", { dailyDate, questionCount: questions.length });
+
+  hideLoading();
+  if (btn) { btn.disabled = false; btn.textContent = btn.dataset.prevText || "Play today's challenge"; }
+  state.dailyLoading = false;
+  enterGame(code, playerId, hostName, true);
+}
+
 async function createGame(isSinglePlayer = false) {
   if (!isFirebaseConfigured) {
     toast("Paste Firebase config first");
@@ -1745,7 +1859,9 @@ function renderGame() {
     $("allGuessesBanner").classList.remove("hidden");
     $("allGuessesBanner").classList.add("time-up");
   } else {
-    const isCountryRound = state.game.questionType === "country";
+    // Per-question type, not per-game type, so a daily challenge with a
+    // mixed pack adapts each round to whatever's actually on screen.
+    const isCountryRound = (question?.type || state.game.questionType) === "country";
     $("roundState").textContent = `${displayLabel} - ${isCountryRound ? "click inside the country" : "place your pin"}`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
     const countryHint = isCountryRound ? " Inside the country = full points." : "";
@@ -2245,9 +2361,80 @@ function trackGameCompletedOnce() {
     tone_mode: state.game?.toneMode,
     map_mode: state.game?.mapMode,
     scoring_mode: state.game?.scoringMode,
+    daily_challenge: Boolean(state.game?.dailyChallenge),
+    daily_date: state.game?.dailyDate || null,
     setup_key: isSoloGame() ? soloSetupKey(state.game) : undefined,
     is_solo: isSoloGame()
   });
+}
+
+// Records the daily result exactly once per gameCode. Returns the
+// updated state with isNewBestForDay + streakChanged flags so the
+// overlay can show appropriate copy.
+function recordDailyResultIfNeeded() {
+  if (!isDailyGame() || !isFinalRevealState()) return null;
+  const cacheKey = `daily_recorded_${state.gameCode}`;
+  if (state.renderCache[cacheKey]) return state.renderCache[cacheKey + ":result"];
+  state.renderCache[cacheKey] = "sent";
+  const dailyDate = state.game?.dailyDate || todayUtcDateString();
+  const finalScore = currentSoloScore();
+  const result = recordDailyCompletion(dailyDate, finalScore);
+  state.renderCache[cacheKey + ":result"] = result;
+  trackEvent?.("daily_challenge_completed", {
+    daily_date: dailyDate,
+    score: finalScore,
+    streak: result.currentStreak,
+    longest_streak: result.longestStreak,
+    is_new_best_for_day: result.isNewBestForDay,
+    streak_changed: result.streakChanged
+  });
+  return result;
+}
+
+// Web Share API with a clipboard fallback. Returns "shared", "cancelled",
+// "copied" or "failed". The native share sheet is preferred on iOS/Android
+// since it offers iMessage / WhatsApp / Share via... directly. Desktop
+// falls through to the clipboard path.
+async function shareResults(opts = {}) {
+  const text = opts.text || buildShareText();
+  const url = opts.url || "https://pintheplanet.co.uk";
+  const title = opts.title || "Pin the Planet";
+
+  if (typeof navigator !== "undefined" && navigator.share) {
+    try {
+      await navigator.share({ title, text, url });
+      trackEvent?.("results_shared", { method: "native", source: opts.source || "unknown" });
+      return "shared";
+    } catch (error) {
+      // User dismissed the sheet - don't fall through to clipboard, that
+      // would be confusing.
+      if (error && (error.name === "AbortError" || /cancel/i.test(error.message || ""))) return "cancelled";
+      // Other errors (permissions, broken implementation) fall through to clipboard.
+    }
+  }
+  const fullText = `${text}\n${url}`.trim();
+  const ok = await copyToClipboardWithFallback(fullText, "Copied — paste it anywhere");
+  trackEvent?.("results_shared", { method: "clipboard", source: opts.source || "unknown", success: !!ok });
+  return ok ? "copied" : "failed";
+}
+
+function buildShareText() {
+  const game = state.game;
+  if (!game) return "Just played Pin the Planet 🌍";
+  const score = currentSoloScore();
+  if (isDailyGame()) {
+    const max = (game.questions?.length || 10) * 1000;
+    const daily = readDailyState();
+    const streak = Number(daily.currentStreak) || 0;
+    const streakLine = streak > 1 ? ` (Day ${streak} streak 🔥)` : "";
+    return `Just scored ${score.toLocaleString()}/${max.toLocaleString()} on today's Pin the Planet daily challenge${streakLine} 🌍`;
+  }
+  if (isSoloGame()) {
+    const max = maxScoreForGame(game);
+    return `Just scored ${score.toLocaleString()}/${max.toLocaleString()} on Pin the Planet 🌍 reckon you can beat me?`;
+  }
+  // Multiplayer.
+  return "Just played Pin the Planet with mates 🌍 a quick map-guessing party game.";
 }
 
 function renderFinalMapOverlay() {
@@ -2271,16 +2458,65 @@ function renderFinalMapOverlay() {
   const byTotal = displayablePlayers().sort((a, b) => (b.total || 0) - (a.total || 0));
   const showPubPoints = state.game.scoringMode === "pub";
   const isSolo = isSoloGame();
+  const isDaily = isDailyGame();
 
   const soloScore = byTotal[0]?.total || 0;
   const soloPercent = scorePercent(soloScore, state.game);
-  const soloBestResult = isSolo ? recordSoloResultIfNeeded() : null;
-  const soloBest = isSolo ? getSoloBest(state.game) : null;
+  const soloBestResult = isSolo && !isDaily ? recordSoloResultIfNeeded() : null;
+  const soloBest = isSolo && !isDaily ? getSoloBest(state.game) : null;
   const bestScore = soloBest?.bestScore || soloScore;
   const bestPercent = soloBest?.bestPercent || soloPercent;
   const isNewBest = Boolean(soloBestResult?.isNewBest);
 
-  const html = isSolo ? `
+  // Daily-specific result + streak. recordDailyResultIfNeeded is
+  // idempotent per gameCode, so re-renders don't double-count.
+  const dailyResult = isDaily ? recordDailyResultIfNeeded() : null;
+  const dailyState = isDaily ? readDailyState() : null;
+  const dailyDateKey = state.game?.dailyDate || (dailyResult ? dailyState?.lastPlayedDate : null);
+  const dailyToday = dailyDateKey ? dailyState?.byDate?.[dailyDateKey] : null;
+  const dailyMaxScore = (state.game?.questions?.length || 10) * 1000;
+  const dailyStreak = Number(dailyResult?.currentStreak ?? dailyState?.currentStreak) || 0;
+  const dailyLongest = Number(dailyResult?.longestStreak ?? dailyState?.longestStreak) || 0;
+  const dailyIsNewBestForDay = Boolean(dailyResult?.isNewBestForDay);
+
+  const html = isDaily ? `
+    <div class="final-board solo-final-board daily-final-board">
+      <div class="final-board-header">
+        <div class="final-board-kicker">${dailyIsNewBestForDay ? "🏆 New best for today" : "🌍 Daily challenge complete"}</div>
+        <div class="final-board-title">${soloScore.toLocaleString()}<span class="daily-of-max"> / ${dailyMaxScore.toLocaleString()}</span></div>
+        <div class="final-board-subtitle">${dailyDateKey ? `Daily pack for ${dailyDateKey}` : "Daily pack"}. Same questions for every player today.</div>
+      </div>
+      <div class="final-board-list final-board-list-solo">
+        <div class="final-board-row champion solo">
+          <div class="final-place">🔥</div>
+          <div>
+            <div class="final-player-name">Day ${dailyStreak} streak</div>
+            <div class="final-player-meta">${dailyLongest > dailyStreak ? `Longest: ${dailyLongest} days` : (dailyStreak === 1 ? "Streak started - come back tomorrow" : "Best streak yet")}</div>
+          </div>
+          <div class="final-total-wrap">
+            <div class="final-total">${dailyStreak}</div>
+            <div class="final-round-add">${dailyStreak === 1 ? "day" : "days"}</div>
+          </div>
+        </div>
+        <div class="final-board-row solo-best-row">
+          <div class="final-place">⭐</div>
+          <div>
+            <div class="final-player-name">Today's best</div>
+            <div class="final-player-meta">${dailyToday?.attempts ? `${dailyToday.attempts} ${dailyToday.attempts === 1 ? "attempt" : "attempts"}` : "First attempt"}</div>
+          </div>
+          <div class="final-total-wrap">
+            <div class="final-total">${Number(dailyToday?.bestScore || soloScore).toLocaleString()}</div>
+            <div class="final-round-add">${scorePercent(dailyToday?.bestScore || soloScore, state.game)}%</div>
+          </div>
+        </div>
+      </div>
+      <div class="final-board-actions">
+        <button id="finalShareBtn" class="success">🔗 Share score</button>
+        <button id="finalCopyResultsBtn" class="secondary">Copy results</button>
+        ${state.isHost ? `<button id="finalDailyReplayBtn" class="secondary">Try again</button>` : ""}
+      </div>
+    </div>
+  ` : isSolo ? `
     <div class="final-board solo-final-board">
       <div class="final-board-header">
         <div class="final-board-kicker">${isNewBest ? "🏆 New best run" : "🎯 Solo run complete"}</div>
@@ -2312,6 +2548,7 @@ function renderFinalMapOverlay() {
         </div>
       </div>
       <div class="final-board-actions">
+        <button id="finalShareBtn" class="secondary">🔗 Share</button>
         <button id="finalCopyResultsBtn" class="secondary">Copy results</button>
         ${state.isHost ? `<button id="finalNewGameBtn" class="success">Play solo again</button>` : ""}
       </div>
@@ -2345,6 +2582,7 @@ function renderFinalMapOverlay() {
         }).join("")}
       </div>
       <div class="final-board-actions">
+        <button id="finalShareBtn" class="secondary">🔗 Share</button>
         <button id="finalCopyResultsBtn" class="secondary">Copy results</button>
         ${state.isHost ? `<button id="finalNewGameBtn" class="success">Play again with same group</button>` : ""}
       </div>
@@ -2836,6 +3074,118 @@ async function newGameSamePlayers() {
 }
 
 
+// --- Daily challenge storage + streak ----------------------------------
+// Schema:
+// {
+//   byDate: { "YYYY-MM-DD": { bestScore, lastScore, attempts, completedAt } },
+//   currentStreak: number,
+//   longestStreak: number,
+//   lastPlayedDate: "YYYY-MM-DD" | null,
+//   totalCompleted: number
+// }
+// All dates are UTC ISO YYYY-MM-DD. Compared as strings - cheap and
+// reliable. The dailyDate used for storage comes from the API response,
+// not the client clock, so a midnight-crossover game still records
+// against the date it was started under.
+const DAILY_STORAGE_KEY = "pinThePlanetDaily";
+
+function readDailyState() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(DAILY_STORAGE_KEY) || "null");
+    if (!raw || typeof raw !== "object") return emptyDailyState();
+    return {
+      byDate: raw.byDate && typeof raw.byDate === "object" ? raw.byDate : {},
+      currentStreak: Number(raw.currentStreak) || 0,
+      longestStreak: Number(raw.longestStreak) || 0,
+      lastPlayedDate: typeof raw.lastPlayedDate === "string" ? raw.lastPlayedDate : null,
+      totalCompleted: Number(raw.totalCompleted) || 0
+    };
+  } catch (error) {
+    return emptyDailyState();
+  }
+}
+
+function emptyDailyState() {
+  return {
+    byDate: {},
+    currentStreak: 0,
+    longestStreak: 0,
+    lastPlayedDate: null,
+    totalCompleted: 0
+  };
+}
+
+function writeDailyState(state) {
+  try {
+    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    // Storage failures must never break gameplay.
+  }
+}
+
+function todayUtcDateString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function dateBefore(dateStr) {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+// Pure: compute the next daily state given a completion. Easier to reason
+// about and unit-test than mutating the stored object directly.
+function applyDailyCompletion(prev, dailyDate, finalScore) {
+  const state = prev || emptyDailyState();
+  const score = Number(finalScore) || 0;
+  const dateKey = String(dailyDate || todayUtcDateString());
+  const existing = state.byDate[dateKey] || { attempts: 0 };
+  const isNewBestForDay = !existing.bestScore || score > existing.bestScore;
+  const updatedDay = {
+    bestScore: isNewBestForDay ? score : existing.bestScore,
+    lastScore: score,
+    attempts: (Number(existing.attempts) || 0) + 1,
+    completedAt: new Date().toISOString()
+  };
+
+  const alreadyPlayedToday = state.lastPlayedDate === dateKey;
+  let nextStreak;
+  if (alreadyPlayedToday) {
+    // Replay of the same daily date: streak unchanged.
+    nextStreak = state.currentStreak;
+  } else if (state.lastPlayedDate && state.lastPlayedDate === dateBefore(dateKey)) {
+    // Played the previous day - streak continues.
+    nextStreak = (state.currentStreak || 0) + 1;
+  } else {
+    // First play, or skipped one or more days - streak restarts.
+    nextStreak = 1;
+  }
+
+  return {
+    byDate: { ...state.byDate, [dateKey]: updatedDay },
+    currentStreak: nextStreak,
+    longestStreak: Math.max(nextStreak, state.longestStreak || 0),
+    lastPlayedDate: dateKey,
+    totalCompleted: (state.totalCompleted || 0) + 1,
+    isNewBestForDay,
+    streakChanged: !alreadyPlayedToday
+  };
+}
+
+function recordDailyCompletion(dailyDate, finalScore) {
+  const prev = readDailyState();
+  const next = applyDailyCompletion(prev, dailyDate, finalScore);
+  // Don't persist the transient flags.
+  const { isNewBestForDay, streakChanged, ...persisted } = next;
+  writeDailyState(persisted);
+  return next;
+}
+
+function isDailyGame(game = state.game) {
+  return Boolean(game?.dailyChallenge);
+}
+
 const SOLO_BESTS_STORAGE_KEY = "pinThePlanetSoloBests";
 
 function soloSetupKey(game = state.game) {
@@ -3126,6 +3476,41 @@ function setupSelectLabel(id) {
   return el.options?.[el.selectedIndex]?.textContent?.trim() || el.value || "";
 }
 
+function renderDailyCard() {
+  const card = $("dailyChallengeCard");
+  if (!card) return;
+  const today = todayUtcDateString();
+  const daily = readDailyState();
+  const playedToday = daily.byDate?.[today];
+  const streak = Number(daily.currentStreak) || 0;
+  const statusEl = $("dailyCardStatus");
+  const titleEl = $("dailyCardTitle");
+  const subtitleEl = $("dailyCardSubtitle");
+  const btn = $("playDailyBtn");
+  const chip = $("dailyStreakChip");
+
+  if (titleEl) titleEl.textContent = `Today's pack — ${today}`;
+  if (subtitleEl) subtitleEl.textContent = "5 cities, 5 countries · same questions for every player today.";
+
+  if (playedToday) {
+    if (statusEl) statusEl.textContent = `Best today: ${Number(playedToday.bestScore || 0).toLocaleString()} · ${playedToday.attempts} ${playedToday.attempts === 1 ? "attempt" : "attempts"}`;
+    if (btn) btn.textContent = "Replay today's challenge";
+  } else {
+    if (statusEl) statusEl.textContent = "Not played yet today.";
+    if (btn) btn.textContent = "Play today's challenge";
+  }
+
+  if (chip) {
+    if (streak > 0 && daily.lastPlayedDate && (daily.lastPlayedDate === today || daily.lastPlayedDate === dateBefore(today))) {
+      chip.classList.remove("hidden");
+      chip.querySelector(".daily-streak-number").textContent = String(streak);
+      chip.querySelector(".daily-streak-label").textContent = streak === 1 ? "day streak" : "day streak";
+    } else {
+      chip.classList.add("hidden");
+    }
+  }
+}
+
 function updateSetupSummary() {
   const title = $("setupSummaryTitle");
   const text = $("setupSummaryText");
@@ -3305,6 +3690,7 @@ document.querySelectorAll(".pack-card[data-pack-type]").forEach(btn => {
   });
 });
 warmCityPool(questionCountForOptions(getSetupOptions()), getSetupOptions()).catch(() => {});
+renderDailyCard();
 $("roundDuration").addEventListener("change", () => {});
 $("joinGameBtn").addEventListener("click", joinGame);
 $("showHostSetupBtn")?.addEventListener("click", () => {
@@ -3364,8 +3750,15 @@ document.addEventListener("click", (event) => {
   if (!target?.id) return;
 
   if (target.id === "finalCopyResultsBtn") copyResults();
+  if (target.id === "finalShareBtn") shareResults({ source: "final_overlay" });
+  if (target.id === "finalDailyReplayBtn") {
+    // Replay today's challenge - fresh game with same daily pack.
+    leaveGame(true);
+    setTimeout(() => playDailyChallenge(), 200);
+  }
   if (target.id === "finalNewGameBtn") newGameSamePlayers();
   if (target.id === "finalHostOwnBtn") hostOwnGroup();
+  if (target.id === "playDailyBtn") playDailyChallenge();
 });
 
 

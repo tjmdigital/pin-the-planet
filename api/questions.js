@@ -25,7 +25,7 @@ function loadCountryFeatures() {
   return countryFeaturesCache;
 }
 
-const API_VERSION = "v68-question-api";
+const API_VERSION = "v82-daily-challenge";
 
 const UK_US_COUNTRIES = new Set(["United Kingdom", "United States"]);
 const FAMILIAR_COUNTRIES = new Set([
@@ -157,6 +157,106 @@ function sourceFor(difficulty) {
   return "mixed-pool";
 }
 
+// --- Daily challenge --------------------------------------------------
+// Same questions for every player on the same UTC day. Determinism is
+// achieved with a date-seeded PRNG, so no server state is required.
+//
+// Why mulberry32: tiny, fast, well-distributed for our small pools.
+function mulberry32(seed) {
+  let s = seed | 0;
+  return function next() {
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function seededShuffle(items, seed) {
+  const rng = mulberry32(seed);
+  const arr = items.slice();
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function todayUtcDate() {
+  // ISO YYYY-MM-DD in UTC. Independent of server timezone settings.
+  return new Date().toISOString().slice(0, 10);
+}
+
+function dateSeed(dateStr) {
+  // "2026-05-04" -> 20260504. Always positive, fits in 32-bit int.
+  return parseInt(String(dateStr).replace(/-/g, ""), 10);
+}
+
+const DAILY_CITY_COUNT = 5;
+const DAILY_COUNTRY_COUNT = 5;
+
+function buildDailyQuestions(debug) {
+  const dailyDate = todayUtcDate();
+  const seed = dateSeed(dailyDate);
+
+  // City pool: combined familiar + mixed extras, deduped.
+  const cityPool = uniqueCityPool([...familiarPool, ...mixedExtrasPool]);
+  const cityPicks = seededShuffle(cityPool, seed).slice(0, DAILY_CITY_COUNT);
+  const cityQuestions = cityPicks.map((c) => ({
+    type: "city",
+    name: c.name,
+    displayName: c.displayName,
+    sourceName: c.sourceName,
+    country: c.country,
+    lat: c.lat,
+    lng: c.lng,
+    tier: c.tier
+  }));
+
+  // Country pool: mainland-trimmed countries with valid label points + geometry.
+  const countryFeatures = loadCountryFeatures().filter(f => {
+    const lat = f.properties.labelLat;
+    const lng = f.properties.labelLng;
+    return Number.isFinite(lat) && Number.isFinite(lng) && f.geometry;
+  });
+  const countryPicks = seededShuffle(countryFeatures, seed + 1).slice(0, DAILY_COUNTRY_COUNT);
+  const countryQuestions = countryPicks.map((f) => ({
+    id: f.properties.iso || f.properties.iso3 || f.properties.name,
+    type: "country",
+    name: f.properties.name,
+    displayName: f.properties.displayName || f.properties.name,
+    sourceName: f.properties.name,
+    country: f.properties.name,
+    iso: f.properties.iso || "",
+    iso3: f.properties.iso3 || "",
+    continent: f.properties.continent || "",
+    lat: f.properties.labelLat,
+    lng: f.properties.labelLng,
+    geometry: f.geometry
+  }));
+
+  // Interleave the two by shuffling the combined pack with a different
+  // seed offset, so player 1 in Sydney sees the same order as player 2
+  // in San Francisco for the same UTC day.
+  const combined = seededShuffle([...cityQuestions, ...countryQuestions], seed + 2);
+
+  debug.questionType = "daily";
+  debug.resolvedDifficulty = "daily";
+  debug.pool = "daily-pool";
+  debug.poolName = "daily";
+  debug.poolSize = cityPool.length + countryFeatures.length;
+  debug.cityCount = cityQuestions.length;
+  debug.countryCount = countryQuestions.length;
+  debug.uniqueCountries = new Set(combined.map(q => q.country)).size;
+  debug.liveWikidataAttempted = false;
+  debug.geometryIncluded = true;
+  debug.mode = "daily";
+  debug.requestedCount = combined.length;
+  debug.dailyDate = dailyDate;
+
+  return { questions: combined, dailyDate };
+}
+
 function buildCountryQuestions(count, debug) {
   const target = clamp(Number(count || 10), 1, 25);
   const features = loadCountryFeatures();
@@ -203,6 +303,26 @@ function buildCountryQuestions(count, debug) {
 }
 
 function makeQuestionPayload(req) {
+  // Daily-challenge short-circuit. Ignores other params; questions are
+  // entirely determined by today's UTC date.
+  const dailyRequested = String(req.query.daily || req.query.mode || "").toLowerCase();
+  if (dailyRequested === "1" || dailyRequested === "true" || dailyRequested === "daily") {
+    const debug = {};
+    const { questions, dailyDate } = buildDailyQuestions(debug);
+    return {
+      apiVersion: API_VERSION,
+      generatedAt: new Date().toISOString(),
+      count: questions.length,
+      questionType: "daily",
+      difficulty: "daily",
+      mode: "daily",
+      source: "daily-pool",
+      dailyDate,
+      debug,
+      questions
+    };
+  }
+
   const rawDifficulty = String(req.query.cityDifficulty || req.query.difficulty || "mixed").toLowerCase();
   const difficulty = ["familiar", "mixed", "chaos"].includes(rawDifficulty) ? rawDifficulty : "mixed";
   const count = clamp(Number(req.query.count || 10), 1, 25);

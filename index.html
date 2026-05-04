@@ -69,6 +69,26 @@
 
     <main id="homeScreen" class="screen landing-screen">
       <div class="landing-shell">
+        <section id="dailyChallengeCard" class="daily-card card">
+          <div class="daily-card-head">
+            <div class="daily-card-icon">🌍</div>
+            <div class="daily-card-title-block">
+              <p class="tiny muted">Daily challenge</p>
+              <h2 id="dailyCardTitle">Today's pack</h2>
+              <p id="dailyCardSubtitle" class="muted">5 cities, 5 countries · same for every player today.</p>
+            </div>
+            <div id="dailyStreakChip" class="daily-streak-chip hidden">
+              <span class="daily-streak-emoji">🔥</span>
+              <span class="daily-streak-number">0</span>
+              <span class="daily-streak-label">day streak</span>
+            </div>
+          </div>
+          <div class="daily-card-actions">
+            <button id="playDailyBtn" type="button" class="success">Play today's challenge</button>
+            <span id="dailyCardStatus" class="small muted"></span>
+          </div>
+        </section>
+
         <section id="hostSetupPanel" class="landing-hero card">
           <div class="hero-kicker">
             <span>✨ No account</span>
