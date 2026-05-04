@@ -1,0 +1,14 @@
+{
+  "name": "Pin the Planet",
+  "short_name": "Pin the Planet",
+  "description": "Live multiplayer map guessing game. Drop a pin, compare the carnage.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "orientation": "any",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "maskable" }
+  ]
+}
