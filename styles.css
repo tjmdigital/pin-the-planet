@@ -3358,3 +3358,70 @@ body.join-link-mode .daily-card { display: none; }
   .daily-card-head { grid-template-columns: auto 1fr; }
   .daily-streak-chip { grid-column: 1 / -1; justify-self: start; }
 }
+
+/* v84 home-screen footer with privacy disclosure */
+.site-footer {
+  margin-top: 32px;
+  padding: 24px 4px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: grid;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.privacy-disclosure {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 14px 18px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.privacy-disclosure[open] {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.12);
+}
+.privacy-disclosure summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--text);
+  padding: 4px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+.privacy-disclosure summary::-webkit-details-marker { display: none; }
+.privacy-disclosure summary::before {
+  content: "▸";
+  display: inline-block;
+  font-size: 11px;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.privacy-disclosure[open] summary::before { transform: rotate(90deg); }
+.privacy-body {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.privacy-body p { margin: 8px 0; }
+.privacy-body ul { margin: 8px 0 8px 18px; padding: 0; }
+.privacy-body li { margin: 4px 0; }
+.privacy-body a { color: #8fd4ff; }
+.privacy-body code {
+  background: rgba(255,255,255,0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.site-footer-credit { margin: 0; text-align: center; font-size: 12px; }
+.site-footer-credit a { color: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.2); }
+.site-footer-credit a:hover { text-decoration-color: rgba(255,255,255,0.6); }
+
+/* Hide the home footer when actually in a game so the map/UI gets the
+   full screen, and during the join-link flow so the join card stays
+   the focus. */
+body.in-game .site-footer { display: none; }
+body.join-link-mode .site-footer { display: none; }
