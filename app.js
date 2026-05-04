@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v82-daily-challenge-fix";
+const PTP_APP_VERSION = "v83-respect-solo-name";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -670,8 +670,16 @@ function escapeHtml(input) {
 }
 
 function displayPlayerName(player) {
-  if (isSoloGame?.() && player?.id === state.playerId) return "You";
-  return player?.name || "Player";
+  const raw = String(player?.name || "").trim();
+  // Solo: only fall back to "You" when the player didn't set a real
+  // name (empty or generic placeholders). If they typed something
+  // distinctive it's used everywhere, including share text and any
+  // future leaderboard.
+  if (isSoloGame?.() && player?.id === state.playerId) {
+    if (!raw || /^(you|quiz host|player)$/i.test(raw)) return "You";
+    return raw;
+  }
+  return raw || "Player";
 }
 
 function playerLabel(player) {
