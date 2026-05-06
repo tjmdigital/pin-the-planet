@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v92-fonts-reflow-padding";
+const PTP_APP_VERSION = "v93-clear-stale-pin";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1872,6 +1872,27 @@ function bestAndWorstRows(rows = roundRows()) {
 
 function renderGame() {
   if (!state.game) return;
+
+  // Detect a fresh live round and clear this client's leftover pin
+  // from the previous round. The host's own clearOwnGuessMarker fires
+  // in startRound/nextRound, but joiners only learn about a new round
+  // via the Firebase sync, so without this their previous pin sticks
+  // around on the map until they tap again.
+  const isLiveRound = state.game.started && !state.game.revealed && state.game.acceptingGuesses;
+  if (isLiveRound) {
+    const liveKey = currentRoundKey();
+    if (state.lastLiveRoundKey !== liveKey) {
+      state.lastLiveRoundKey = liveKey;
+      state.selectedGuess = null;
+      if (state.guessMarker) {
+        state.guessMarker.remove();
+        state.guessMarker = null;
+      }
+    }
+  } else if (!state.game.started) {
+    // Game reset back to lobby - drop the cached round key too.
+    state.lastLiveRoundKey = null;
+  }
 
   const isSolo = isSoloGame();
   $("roomCodeDisplay").textContent = isSolo ? "SOLO" : state.gameCode;
