@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v93-clear-stale-pin";
+const PTP_APP_VERSION = "v94-counties-states";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -645,19 +645,31 @@ function countryWorstSpotlight(row) {
 }
 
 function verdictForRow(row, question) {
-  if (question?.type === "country") return countryVerdictCopy(row || { hasGuess: false });
+  if (isPolygonType(question?.type)) return polygonVerdictCopy(row || { hasGuess: false }, question);
   if (!row?.hasGuess) return verdictForDistance(Infinity);
   return verdictForDistance(row.distance);
 }
 
 function bestSpotlightForRow(row, question) {
-  if (question?.type === "country") return countryBestSpotlight(row);
+  if (isPolygonType(question?.type)) return countryBestSpotlight(row);
   return bestSpotlightCopy(row.distance);
 }
 
 function worstSpotlightForRow(row, question) {
-  if (question?.type === "country") return countryWorstSpotlight(row);
+  if (isPolygonType(question?.type)) return countryWorstSpotlight(row);
   return worstSpotlightCopy(row.distance);
+}
+
+// Re-uses countryVerdictCopy with substitutions for sub-national packs
+// so "Inside the country" reads as "Inside the county" or "Inside the
+// state" where appropriate.
+function polygonVerdictCopy(row, question) {
+  const noun = polygonNoun(question);
+  const text = countryVerdictCopy(row);
+  if (noun === "country") return text;
+  return text
+    .replace(/the country/g, `the ${noun}`)
+    .replace(/Wrong continent/g, noun === "county" ? "Wrong region" : "Wrong region");
 }
 
 function escapeHtml(input) {
@@ -735,7 +747,10 @@ function getSetupOptions() {
     roundsRequested,
     roundDurationSeconds,
     practiceEnabled,
-    questionType: $("questionType")?.value === "country" ? "country" : "city",
+    questionType: (() => {
+      const v = $("questionType")?.value || "city";
+      return ["city", "country", "county-uk", "state-us"].includes(v) ? v : "city";
+    })(),
     cityDifficulty: $("cityDifficulty")?.value || "mixed",
     mapMode: $("mapMode")?.value || "hardcore",
     toneMode: $("toneMode")?.value || "lads",
@@ -1008,13 +1023,30 @@ function wrappedGuessForAnswer(guess, answer) {
   };
 }
 
-// --- Country mode scoring helpers ---------------------------------------
+// --- Polygon mode scoring helpers ---------------------------------------
 // Geometry comes from /api/questions as GeoJSON Polygon or MultiPolygon
 // in [lng, lat] order (per the spec). Helpers handle MultiPolygon and
 // the antimeridian by normalising longitudes relative to the test point.
+// Used by country mode + UK counties + US states - all share the same
+// pin-inside-polygon scoring logic.
+
+const POLYGON_TYPES = new Set(["country", "county-uk", "state-us"]);
+
+function isPolygonType(type) {
+  return POLYGON_TYPES.has(type);
+}
 
 function isCountryQuestion(question) {
-  return question?.type === "country" || state.game?.questionType === "country";
+  // Kept for backward-compat. Now matches any polygon type.
+  return isPolygonType(question?.type) || isPolygonType(state.game?.questionType);
+}
+
+// "country" | "county" | "state" - what to call the polygon in copy.
+function polygonNoun(question) {
+  const t = question?.type || state.game?.questionType;
+  if (t === "county-uk") return "county";
+  if (t === "state-us") return "state";
+  return "country";
 }
 
 function ringContainsPoint(ring, lat, lng) {
@@ -1118,18 +1150,28 @@ function distanceToBorderKm(geometry, lat, lng) {
 }
 
 function pointsForCountryDistance(distanceKm, inside, hasGuess = true) {
+  return pointsForPolygonDistance(distanceKm, inside, hasGuess, "country");
+}
+
+// Generalised polygon scoring. Smaller polygons (counties, states)
+// need a tighter scale length so a 30km miss on Surrey scores like a
+// "next door" rather than "different region". Country mode keeps the
+// existing curve.
+function pointsForPolygonDistance(distanceKm, inside, hasGuess = true, polygonType = "country") {
   if (!hasGuess) return 0;
   if (inside) return 1000;
   if (!Number.isFinite(distanceKm)) return 0;
-  // Two-part curve so wrong-continent guesses still differentiate:
-  // - exp curve dominates for near-border misses (1500km and below)
-  // - linear tail keeps the long tail discriminating (11,000km != 15,000km)
-  // No 50-point floor in country mode - that was a city-mode "you tried"
-  // courtesy and was making every catastrophic miss read as identical.
-  const expPart = 1000 * Math.exp(-distanceKm / 1200);
-  const tailPart = Math.max(0, 60 * (1 - distanceKm / 20000));
-  // Cap outside-the-border score below 1000 so being inside is always a
-  // strict win, even from one metre over the border.
+  // Tuning per type:
+  //   country  - 1200km decay, 20000km tail (works at world scale)
+  //   state    -  500km decay,  6000km tail (US states ~300km wide)
+  //   county   -  120km decay,  1200km tail (UK counties ~30-100km)
+  let decay, tailMax;
+  if (polygonType === "county-uk") { decay = 120; tailMax = 1200; }
+  else if (polygonType === "state-us") { decay = 500; tailMax = 6000; }
+  else { decay = 1200; tailMax = 20000; }
+  const expPart = 1000 * Math.exp(-distanceKm / decay);
+  const tailPart = Math.max(0, 60 * (1 - distanceKm / tailMax));
+  // Cap outside-the-border score below 1000 so inside is always a strict win.
   return Math.max(0, Math.min(999, Math.round(expPart + tailPart)));
 }
 
@@ -1137,10 +1179,12 @@ function scoreGuessForQuestion(guess, question) {
   if (!guess || !question) {
     return { hasGuess: false, distance: Infinity, points: 0, inside: false };
   }
-  if (question.type === "country" && question.geometry) {
+  if (isPolygonType(question.type) && question.geometry) {
     const inside = geometryContainsPoint(question.geometry, guess.lat, guess.lng);
     const distance = inside ? 0 : distanceToBorderKm(question.geometry, guess.lat, guess.lng);
-    const points = pointsForCountryDistance(distance, inside, true);
+    // Smaller polygons (counties, states) deserve a more forgiving
+    // curve - a 30km miss on Surrey is "next door" not "wrong region".
+    const points = pointsForPolygonDistance(distance, inside, true, question.type);
     return { hasGuess: true, distance, points, inside };
   }
   const distance = haversineKm(guess.lat, guess.lng, question.lat, question.lng);
@@ -1150,8 +1194,9 @@ function scoreGuessForQuestion(guess, question) {
 
 function distanceTextForRow(row, question) {
   if (!row?.hasGuess) return "No guess submitted";
-  if (question?.type === "country") {
-    if (row.inside) return "Inside the country";
+  if (isPolygonType(question?.type)) {
+    const noun = polygonNoun(question);
+    if (row.inside) return `Inside the ${noun}`;
     return `${Math.round(row.distance).toLocaleString()} km from the border`;
   }
   return `${Math.round(row.distance).toLocaleString()} km away`;
@@ -1944,22 +1989,24 @@ function renderGame() {
   } else if (timeUp) {
     $("roundState").textContent = `${displayLabel} - time's up`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
-    $("playerHint").textContent = isSolo ? "Time is up. Score the round to see how close you were." : (state.isHost ? "Time is up. Reveal the answer and enjoy the carnage." : "Time is up. Waiting for the answer reveal.");
+    $("playerHint").textContent = isSolo ? "Time is up. Score the round to see how close you were." : (state.isHost ? "Time is up. Reveal the answer when you're ready." : "Time is up. Waiting for the answer reveal.");
     $("allGuessesBanner").textContent = isSolo ? "⏰ Time's up - score your round." : (state.isHost ? "⏰ Time's up - reveal time." : "⏰ Time's up - waiting for host.");
     $("allGuessesBanner").classList.remove("hidden");
     $("allGuessesBanner").classList.add("time-up");
   } else {
     // Per-question type, not per-game type, so a daily challenge with a
     // mixed pack adapts each round to whatever's actually on screen.
-    const isCountryRound = (question?.type || state.game.questionType) === "country";
-    $("roundState").textContent = `${displayLabel} - ${isCountryRound ? "click inside the country" : "place your pin"}`;
+    const polygonType = question?.type || state.game.questionType;
+    const isPolygonRound = isPolygonType(polygonType);
+    const noun = polygonNoun(question);
+    $("roundState").textContent = `${displayLabel} - ${isPolygonRound ? `click inside the ${noun}` : "place your pin"}`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
-    const countryHint = isCountryRound ? " Inside the country = full points." : "";
+    const polygonHint = isPolygonRound ? ` Inside the ${noun} = full points.` : "";
     $("playerHint").textContent = isSolo
-      ? `Click the map to place or change your pin before time runs out.${countryHint}`
+      ? `Click the map to place or change your pin before time runs out.${polygonHint}`
       : (state.isHost
-        ? `Click the map to submit your own guess. The round closes automatically once everyone has guessed.${countryHint}`
-        : `Click anywhere on the map to submit or change your guess.${countryHint}`);
+        ? `Click the map to submit your own guess. The round closes automatically once everyone has guessed.${polygonHint}`
+        : `Click anywhere on the map to submit or change your guess.${polygonHint}`);
     // In solo mode the player can keep repositioning, so the "everyone is
     // in" banner would be misleading. Skip it entirely for solo.
     if (!isSolo && (allIn || roundClosedByAll)) {
@@ -2339,7 +2386,7 @@ function renderRoundSpotlight() {
   }
 
   const question = currentQuestion();
-  const isCountry = question?.type === "country";
+  const isCountry = isPolygonType(question?.type);
   const everyoneInside = isCountry && rows.length > 1 && rows.every(r => r.inside);
   const allTiedTop = rows.length > 1 && rows.every(r => r.points === best.points);
   const allTiedBottom = rows.length > 1 && rows.every(r => r.points === worst.points) && best.points === worst.points;
@@ -2357,10 +2404,11 @@ function renderRoundSpotlight() {
     let kicker;
     let verdict;
     if (everyoneInside) {
-      kicker = "🎯 All inside the country";
+      const noun = polygonNoun(question);
+      kicker = `🎯 All inside the ${noun}`;
       verdict = rows.length === 2
         ? "Both pins landed inside. Joint full marks."
-        : `All ${rows.length} pins inside the country. Honours even.`;
+        : `All ${rows.length} pins inside the ${noun}. Honours even.`;
     } else if (allTiedTop && best.points >= 950) {
       kicker = "🎯 Joint best";
       verdict = "Everyone tied at the top. No roast this round.";
@@ -2772,18 +2820,19 @@ function roundAwards(rows) {
   }
 
   const awardQuestion = currentQuestion();
-  const isCountry = awardQuestion?.type === "country";
+  const isCountry = isPolygonType(awardQuestion?.type);
   const everyoneInside = isCountry && guessed.length > 1 && guessed.every(r => r.inside);
   const allTied = guessed.length > 1 && guessed.every(r => r.points === best.points);
 
   // Joint round: don't crown a wooden spoon when everyone tied.
   if (everyoneInside || allTied) {
     const namesList = guessed.map(r => playerLabel(r.player)).join(", ");
+    const noun = polygonNoun(awardQuestion);
     let line;
     if (everyoneInside) {
       line = guessed.length === 2
-        ? `Both inside the country: ${namesList}. Joint full marks.`
-        : `All inside the country: ${namesList}. Joint full marks.`;
+        ? `Both inside the ${noun}: ${namesList}. Joint full marks.`
+        : `All inside the ${noun}: ${namesList}. Joint full marks.`;
     } else if (best.points <= 60) {
       line = `Everyone miles off: ${namesList}. Honours even.`;
     } else {
@@ -2891,7 +2940,7 @@ function renderMapMarkers() {
   state.revealMarkers = [];
 
   if (state.game.revealed && question) {
-    if (question.type === "country" && question.geometry) {
+    if (isPolygonType(question.type) && question.geometry) {
       try {
         state.countryShape = L.geoJSON(question.geometry, {
           style: {
@@ -2917,8 +2966,8 @@ function renderMapMarkers() {
     rows.forEach((row) => {
       const distanceRank = Math.max(0, rowsByDistance.findIndex(distanceRow => distanceRow.player.id === row.player.id));
       const wrappedGuess = wrappedGuessForAnswer(row.guess, question);
-      const popupDistance = question.type === "country"
-        ? (row.inside ? "inside the country" : `${Math.round(row.distance).toLocaleString()} km from the border`)
+      const popupDistance = isPolygonType(question.type)
+        ? (row.inside ? `inside the ${polygonNoun(question)}` : `${Math.round(row.distance).toLocaleString()} km from the border`)
         : `${Math.round(row.distance).toLocaleString()} km`;
 
       const marker = L.marker([wrappedGuess.lat, wrappedGuess.lng], {
@@ -2930,10 +2979,10 @@ function renderMapMarkers() {
 
       state.revealMarkers.push(marker);
 
-      // For country mode, skip the connector line when the pin is inside the
-      // country - the line just clutters the outline. For city mode and
-      // outside-country pins, the line reads as the distance trail.
-      if (!(question.type === "country" && row.inside)) {
+      // For polygon modes, skip the connector line when the pin is inside
+      // the polygon - the line just clutters the outline. For city mode
+      // and outside-polygon pins, the line reads as the distance trail.
+      if (!(isPolygonType(question.type) && row.inside)) {
         const line = L.polyline([[wrappedGuess.lat, wrappedGuess.lng], [question.lat, question.lng]], {
           weight: 3,
           opacity: 0.62,
@@ -2948,7 +2997,7 @@ function renderMapMarkers() {
       return [wrappedGuess.lat, wrappedGuess.lng];
     })];
 
-    if (question.type === "country" && state.countryShape) {
+    if (isPolygonType(question.type) && state.countryShape) {
       try {
         const shapeBounds = state.countryShape.getBounds();
         const combined = points.length > 1 ? shapeBounds.extend(L.latLngBounds(points)) : shapeBounds;
@@ -3464,65 +3513,48 @@ function ordinal(rank) {
 
 function buildResultsText() {
   const rows = validPlayersForResults().sort((a, b) => (b.total || 0) - (a.total || 0));
-  const siteUrl = window.location.origin;
-  const lines = ["🌍 Pin the Planet result"];
+  const lines = ["🌍 Pin the Planet result", ""];
+  const isMultiplayer = !isSoloGame() && rows.length > 1;
 
   if (rows.length) {
-    lines.push("");
-    rows.forEach((player, index) => {
-      const badge = index === 0 ? "🏆" : index === rows.length - 1 && rows.length > 1 ? "🥄" : `${index + 1}.`;
-      lines.push(`${badge} ${player.name}: ${player.total || 0}`);
-    });
-  }
-
-  const currentRows = typeof roundRows === "function" ? roundRows().filter(row => row.hasGuess) : [];
-  if (currentRows.length) {
-    const best = currentRows[0];
-    const worst = currentRows[currentRows.length - 1];
-    const lastQuestion = currentQuestion();
-    const isCountryRound = lastQuestion?.type === "country";
-    const everyoneInside = isCountryRound && currentRows.length > 1 && currentRows.every(r => r.inside);
-    const allTied = currentRows.length > 1 && currentRows.every(r => r.points === best.points);
-
-    lines.push("");
-    if (everyoneInside) {
-      lines.push(`Final round: everyone landed inside the country. Joint full marks.`);
-    } else if (allTied) {
-      lines.push(`Final round: everyone tied at ${best.points}.`);
+    const winner = rows[0];
+    lines.push(`🏆 ${winner.name}: ${Number(winner.total || 0).toLocaleString()}`);
+    // Middle places: numbered. Wooden spoon (last) only in multiplayer.
+    if (isMultiplayer) {
+      for (let i = 1; i < rows.length - 1; i += 1) {
+        lines.push(`${i + 1}. ${rows[i].name}: ${Number(rows[i].total || 0).toLocaleString()}`);
+      }
+      const spoon = rows[rows.length - 1];
+      lines.push(`🥄 ${spoon.name}: ${Number(spoon.total || 0).toLocaleString()}`);
     } else {
-      const bestSuffix = isCountryRound
-        ? (best.inside ? "inside the country" : `${Math.round(best.distance).toLocaleString()}km from the border`)
-        : `${Math.round(best.distance).toLocaleString()}km from ${locationDisplayName(lastQuestion) || "the answer"}`;
-      lines.push(`Final round best: ${best.player.name} - ${bestSuffix}.`);
-
-      if (worst && worst.player.id !== best.player.id) {
-        const worstSuffix = isCountryRound
-          ? (worst.inside ? "inside the country" : `${Math.round(worst.distance).toLocaleString()}km from the border`)
-          : `${Math.round(worst.distance).toLocaleString()}km from ${locationDisplayName(lastQuestion) || "the answer"}`;
-        lines.push(`Final round worst: ${worst.player.name} - ${worstSuffix}.`);
-      }
-
-      // "Most divisive" is only meaningful when the spread is non-trivial.
-      // When the best is inside (distance 0) and the worst is e.g. 1,400km
-      // out, "1,400km between best and worst" reads as a numeric oddity, so
-      // skip it for that case.
-      if (
-        currentRows.length > 1 &&
-        Number.isFinite(worst.distance) &&
-        Number.isFinite(best.distance) &&
-        !best.inside &&
-        worst.distance - best.distance >= 200
-      ) {
-        const spread = Math.round((worst.distance - best.distance)).toLocaleString();
-        lines.push(`Spread: ${spread}km between best and worst pins.`);
-      }
+      // Solo - just the one line, already pushed.
     }
   }
 
+  // Final round highlight - "best" line only. Country mode says "inside
+  // <country>" or "<X> km from the border". City mode says "from <city>".
+  const currentRows = typeof roundRows === "function" ? roundRows().filter(r => r.hasGuess) : [];
+  if (currentRows.length) {
+    const best = currentRows[0];
+    const lastQuestion = currentQuestion();
+    const isPolygonRound = isPolygonType(lastQuestion?.type);
+    const placeName = locationDisplayName(lastQuestion) || "the answer";
+
+    let bestSuffix;
+    if (isPolygonRound) {
+      bestSuffix = best.inside
+        ? `inside ${placeName}`
+        : `${Math.round(best.distance).toLocaleString()} km from the border`;
+    } else {
+      bestSuffix = `${Math.round(best.distance).toLocaleString()} km from ${placeName}`;
+    }
+    lines.push("");
+    lines.push(`🎯 Final round best: ${best.player.name} - ${bestSuffix}`);
+  }
+
   lines.push("");
-  lines.push("");
-  lines.push("Pin the place. Compare the carnage.");
-  lines.push(`Play: ${siteUrl}`);
+  lines.push("Drop a pin. Who's gonna win?");
+  lines.push("https://www.pintheplanet.co.uk");
 
   return lines.join("\n");
 }
@@ -3629,9 +3661,11 @@ function updateSetupSummary() {
 
   // Hide the City difficulty field when Countries is selected - it has
   // no effect on country-mode rounds.
-  const isCountrySelected = $("questionType")?.value === "country";
+  // City difficulty has no effect on any polygon-mode pack.
+  const selectedType = $("questionType")?.value;
+  const isPolygonSelected = ["country", "county-uk", "state-us"].includes(selectedType);
   const diffField = $("cityDifficultyField");
-  if (diffField) diffField.classList.toggle("hidden", isCountrySelected);
+  if (diffField) diffField.classList.toggle("hidden", isPolygonSelected);
 
   // Keep the Question packs tiles in sync with the questionType dropdown.
   document.querySelectorAll(".pack-card[data-pack-type]").forEach(btn => {
@@ -3680,9 +3714,14 @@ function updateSetupSummary() {
 
   title.textContent = practice ? "Practice + game setup" : "Game setup";
   if (duration) duration.textContent = `~${approxMinutes} min`;
-  const isCountryMode = $("questionType")?.value === "country";
-  if (isCountryMode) {
-    text.textContent = `${rounds} ${rounds === 1 ? "round" : "rounds"} of countries, ${timer.toLowerCase()} per round${practice ? ", plus a practice round first" : ""}. Country mode: click inside the country. Inside = full points. Expect ${mapSummary}, ${toneSummary}, and ${scoringSummary}.${timerWarning}`;
+  const selectedTypeForSummary = $("questionType")?.value;
+  const polygonSummary = ({
+    "country": { plural: "countries", noun: "country" },
+    "county-uk": { plural: "UK counties", noun: "county" },
+    "state-us": { plural: "US states", noun: "state" }
+  })[selectedTypeForSummary];
+  if (polygonSummary) {
+    text.textContent = `${rounds} ${rounds === 1 ? "round" : "rounds"} of ${polygonSummary.plural}, ${timer.toLowerCase()} per round${practice ? ", plus a practice round first" : ""}. Click inside the ${polygonSummary.noun}. Inside = full points. Expect ${mapSummary}, ${toneSummary}, and ${scoringSummary}.${timerWarning}`;
   } else {
     text.textContent = `${rounds} ${rounds === 1 ? "round" : "rounds"} of ${questionType.toLowerCase()}, ${timer.toLowerCase()} per round${practice ? ", plus a practice round first" : ""}. Expect ${difficultySummary}, ${mapSummary}, ${toneSummary}, and ${scoringSummary}.${timerWarning}`;
   }

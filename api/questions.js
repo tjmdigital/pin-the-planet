@@ -14,18 +14,39 @@ const familiarPool = require("../data/cities.familiar.json");
 const mixedExtrasPool = require("../data/cities.mixed.json");
 const chaosPool = require("../data/cities.chaos.json");
 
-// Country geometries are loaded lazily on first country-mode request so
-// city-only requests don't pay the JSON.parse cost.
+// Geometry datasets are loaded lazily on first request so city-only
+// requests don't pay the JSON.parse cost.
 let countryFeaturesCache = null;
-function loadCountryFeatures() {
-  if (countryFeaturesCache) return countryFeaturesCache;
-  const file = path.join(__dirname, "..", "data", "countries.geojson");
+let countyUkCache = null;
+let stateUsCache = null;
+
+function loadGeoFeatures(filename, cacheRef) {
+  if (cacheRef.value) return cacheRef.value;
+  const file = path.join(__dirname, "..", "data", filename);
   const data = JSON.parse(fs.readFileSync(file, "utf8"));
-  countryFeaturesCache = (data.features || []).filter(f => f && f.properties && f.geometry);
-  return countryFeaturesCache;
+  cacheRef.value = (data.features || []).filter(f => f && f.properties && f.geometry);
+  return cacheRef.value;
+}
+function loadCountryFeatures() {
+  const ref = { value: countryFeaturesCache };
+  const result = loadGeoFeatures("countries.geojson", ref);
+  countryFeaturesCache = ref.value;
+  return result;
+}
+function loadCountyUkFeatures() {
+  const ref = { value: countyUkCache };
+  const result = loadGeoFeatures("counties-uk.geojson", ref);
+  countyUkCache = ref.value;
+  return result;
+}
+function loadStateUsFeatures() {
+  const ref = { value: stateUsCache };
+  const result = loadGeoFeatures("states-us.geojson", ref);
+  stateUsCache = ref.value;
+  return result;
 }
 
-const API_VERSION = "v82-daily-challenge";
+const API_VERSION = "v94-counties-states";
 
 const UK_US_COUNTRIES = new Set(["United Kingdom", "United States"]);
 const FAMILIAR_COUNTRIES = new Set([
@@ -302,6 +323,52 @@ function buildCountryQuestions(count, debug) {
   }));
 }
 
+// Same shape as buildCountryQuestions but for sub-national polygon
+// packs (UK ceremonial counties, US states). Each pack shares the
+// same scoring logic on the client because every question carries
+// its own geometry and label point.
+function buildSubNationalQuestions(count, debug, opts) {
+  const target = clamp(Number(count || 10), 1, 25);
+  const features = opts.loader();
+  const playable = features.filter(f => {
+    const lat = f.properties.labelLat;
+    const lng = f.properties.labelLng;
+    return Number.isFinite(lat) && Number.isFinite(lng) && f.geometry;
+  });
+
+  debug.questionType = opts.type;
+  debug.resolvedDifficulty = opts.type;
+  debug.pool = opts.poolName;
+  debug.poolName = opts.poolName;
+  debug.poolSize = playable.length;
+  debug.countryCount = playable.length;
+  debug.uniqueCountries = playable.length;
+  debug.liveWikidataAttempted = false;
+  debug.mode = opts.type;
+  debug.requestedCount = target;
+  debug.geometryIncluded = true;
+
+  const shuffled = shuffleCopy(playable);
+  const picks = shuffled.slice(0, target);
+  while (picks.length < target && shuffled.length > 0) {
+    picks.push(shuffled[picks.length % shuffled.length]);
+  }
+
+  return picks.map((f) => ({
+    id: f.properties.iso || f.properties.name,
+    type: opts.type,
+    name: f.properties.name,
+    displayName: f.properties.displayName || f.properties.name,
+    sourceName: f.properties.name,
+    country: f.properties.country || opts.parentCountry,
+    iso: f.properties.iso || "",
+    stateCode: f.properties.stateCode || "",
+    lat: f.properties.labelLat,
+    lng: f.properties.labelLng,
+    geometry: f.geometry
+  }));
+}
+
 function makeQuestionPayload(req) {
   // Daily-challenge short-circuit. Ignores other params; questions are
   // entirely determined by today's UTC date.
@@ -327,7 +394,8 @@ function makeQuestionPayload(req) {
   const difficulty = ["familiar", "mixed", "chaos"].includes(rawDifficulty) ? rawDifficulty : "mixed";
   const count = clamp(Number(req.query.count || 10), 1, 25);
   const rawType = String(req.query.questionType || "city").toLowerCase();
-  const questionType = rawType === "country" ? "country" : "city";
+  const KNOWN_TYPES = new Set(["city", "country", "county-uk", "state-us"]);
+  const questionType = KNOWN_TYPES.has(rawType) ? rawType : "city";
   const options = {
     questionType,
     cityDifficulty: difficulty,
@@ -349,6 +417,48 @@ function makeQuestionPayload(req) {
       difficulty: "country",
       mode: "country",
       source: "country-pool",
+      debug,
+      questions
+    };
+  }
+
+  if (questionType === "county-uk") {
+    const questions = buildSubNationalQuestions(count, debug, {
+      type: "county-uk",
+      poolName: "county-uk-pool",
+      loader: loadCountyUkFeatures,
+      parentCountry: "United Kingdom"
+    });
+    debug.requestedCityDifficulty = difficulty;
+    return {
+      apiVersion: API_VERSION,
+      generatedAt: new Date().toISOString(),
+      count: questions.length,
+      questionType: "county-uk",
+      difficulty: "county-uk",
+      mode: "county-uk",
+      source: "county-uk-pool",
+      debug,
+      questions
+    };
+  }
+
+  if (questionType === "state-us") {
+    const questions = buildSubNationalQuestions(count, debug, {
+      type: "state-us",
+      poolName: "state-us-pool",
+      loader: loadStateUsFeatures,
+      parentCountry: "United States"
+    });
+    debug.requestedCityDifficulty = difficulty;
+    return {
+      apiVersion: API_VERSION,
+      generatedAt: new Date().toISOString(),
+      count: questions.length,
+      questionType: "state-us",
+      difficulty: "state-us",
+      mode: "state-us",
+      source: "state-us-pool",
       debug,
       questions
     };
