@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v95-county-union-hero-packs";
+const PTP_APP_VERSION = "v96-pack-default-view";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1311,6 +1311,31 @@ function setBaseMapLayer(mode = "hardcore") {
   state.baseMapMode = safeMode;
 }
 
+// Default map view per question pack. Sub-national packs zoom in on
+// the relevant country so players don't have to pan/zoom from a world
+// view every round.
+function defaultMapViewForPack(packType, question) {
+  // Use the actual question type if we have one (handles mixed packs
+  // like daily where individual rounds carry their own type).
+  const t = question?.type || packType;
+  switch (t) {
+    case "county-uk":
+      return { center: [54.0, -3.0], zoom: 6 };
+    case "state-us":
+      return { center: [39.0, -98.0], zoom: 4 };
+    default:
+      return { center: [20, 0], zoom: 2 };
+  }
+}
+
+// Resets the map view to the pack default. Used at the start of each
+// round and on initial map creation.
+function resetMapViewForCurrentPack(options = {}) {
+  if (!state.map || !state.game) return;
+  const view = defaultMapViewForPack(state.game.questionType, currentQuestion());
+  state.map.setView(view.center, view.zoom, options);
+}
+
 function initMap() {
   if (state.map) {
     state.map.invalidateSize();
@@ -1318,6 +1343,9 @@ function initMap() {
   }
 
   const isMobileViewport = window.matchMedia("(max-width: 860px)").matches;
+  // Pick the right starting view straight away so UK counties games
+  // don't briefly flash a world view before snapping in.
+  const initialView = defaultMapViewForPack(state.game?.questionType, currentQuestion());
   state.map = L.map("map", {
     worldCopyJump: false,
     minZoom: 2,
@@ -1326,7 +1354,7 @@ function initMap() {
     bounceAtZoomLimits: false,
     inertia: !isMobileViewport,
     tap: false
-  }).setView([20, 0], 2);
+  }).setView(initialView.center, initialView.zoom);
 
   L.control.zoom({ position: "bottomleft" }).addTo(state.map);
 
@@ -1933,6 +1961,10 @@ function renderGame() {
         state.guessMarker.remove();
         state.guessMarker = null;
       }
+      // Snap the map back to the pack's default view at the start of
+      // each round, so a UK counties game starts every round looking
+      // at the UK rather than wherever the previous reveal left us.
+      resetMapViewForCurrentPack({ animate: true, duration: 0.4 });
     }
   } else if (!state.game.started) {
     // Game reset back to lobby - drop the cached round key too.
