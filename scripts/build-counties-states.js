@@ -13,6 +13,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const polygonClipping = require("polygon-clipping");
 
 const SRC = "/tmp/ne_admin1_10m.geojson";
 const COUNTIES_OUT = path.join(__dirname, "..", "data", "counties-uk.geojson");
@@ -166,17 +167,33 @@ function findUKFeature(name) {
     || ukFeatures.find(f => (f.properties.name || "").toLowerCase() === name.toLowerCase());
 }
 
+// Geometric union of multiple member features. Without this we'd
+// concatenate constituent polygons into a MultiPolygon, which keeps
+// each unitary's outline - producing visible "internal borders" when
+// the merged county is rendered (eg lines running through Berkshire
+// where Reading meets Wokingham). polygon-clipping does proper
+// boolean union so the result is the dissolved outer boundary only.
 function mergeMembersGeometry(memberNames) {
-  const combined = [];
+  const memberPolys = [];
   const found = [];
   const missed = [];
   for (const member of memberNames) {
     const f = findUKFeature(member);
     if (!f) { missed.push(member); continue; }
     found.push(member);
-    asMultiPolygon(f.geometry).forEach(poly => combined.push(poly));
+    memberPolys.push(asMultiPolygon(f.geometry));
   }
-  return { combined, found, missed };
+  if (!memberPolys.length) return { combined: [], found, missed };
+  // polygon-clipping.union returns a MultiPolygon. First arg + spread of
+  // the rest, since the function signature is union(first, ...rest).
+  let unioned;
+  try {
+    unioned = polygonClipping.union(memberPolys[0], ...memberPolys.slice(1));
+  } catch (error) {
+    console.warn("Union failed; falling back to concat for members:", found, error.message);
+    unioned = memberPolys.flat();
+  }
+  return { combined: unioned, found, missed };
 }
 
 const countyFeatures = [];
