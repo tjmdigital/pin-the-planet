@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v107-club-badges";
+const PTP_APP_VERSION = "v108-badge-cleanup";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -712,6 +712,13 @@ function cleanLocationDisplayName(name = "") {
 }
 
 function locationDisplayName(question) {
+  // For UK football grounds we want just the stadium name as the
+  // headline - the club is shown separately as a coloured pill.
+  // Old cached payloads may have "Stadium · Club" in displayName;
+  // preferring `ground`/`name` keeps the title clean regardless.
+  if (question?.type === "ground-uk") {
+    return cleanLocationDisplayName(question.ground || question.name || question.displayName || "");
+  }
   return cleanLocationDisplayName(question?.displayName || question?.city || question?.name || "");
 }
 
@@ -763,7 +770,9 @@ function optionsKey(options) {
 }
 
 function questionCacheStorageKey(options) {
-  return `pinThePlanetQuestions:${optionsKey(options)}`;
+  // Bump the version segment whenever the question payload shape
+  // changes so old cached payloads are ignored after a deploy.
+  return `pinThePlanetQuestions:v2:${optionsKey(options)}`;
 }
 
 function readCachedQuestions(options, minCount) {
