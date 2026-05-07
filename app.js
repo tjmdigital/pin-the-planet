@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v100-label-spacing";
+const PTP_APP_VERSION = "v101-border-toggle";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -3915,14 +3915,34 @@ document.querySelectorAll(".pack-card[data-pack-type]").forEach(btn => {
 // cityDifficulty select so all the downstream warming/persistence is
 // handled by the existing change listener.
 function syncDifficultyHeroVisibility() {
-  const hero = $("difficultyHero");
-  if (!hero) return;
-  const isCity = ($("questionType")?.value || "city") === "city";
-  hero.hidden = !isCity;
-  // Reflect current dropdown value on the pills.
-  const value = $("cityDifficulty")?.value || "mixed";
+  const diffHero = $("difficultyHero");
+  const borderHero = $("bordersHero");
+  const packType = $("questionType")?.value || "city";
+  const isCity = packType === "city";
+  // Polygon modes (countries / counties / states) get the borders
+  // toggle. City mode gets the difficulty pills. Daily uses defaults.
+  const isPolygon = ["country", "county-uk", "state-us"].includes(packType);
+  if (diffHero) diffHero.hidden = !isCity;
+  if (borderHero) borderHero.hidden = !isPolygon;
+
+  // For polygon packs, "Easy labels" would print the answer on the
+  // map - effectively cheating. If the user had labels enabled for
+  // a city run and switches to a polygon pack, snap them back to
+  // hardcore so the toggle UI is honest.
+  const mapModeSel = $("mapMode");
+  if (isPolygon && mapModeSel && mapModeSel.value === "labels") {
+    mapModeSel.value = "hardcore";
+    mapModeSel.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  // Reflect current dropdown values on the pills.
+  const diffValue = $("cityDifficulty")?.value || "mixed";
   document.querySelectorAll(".difficulty-pill[data-difficulty]").forEach(pill => {
-    pill.classList.toggle("active", pill.getAttribute("data-difficulty") === value);
+    pill.classList.toggle("active", pill.getAttribute("data-difficulty") === diffValue);
+  });
+  const mapValue = $("mapMode")?.value || "hardcore";
+  document.querySelectorAll(".difficulty-pill[data-mapmode]").forEach(pill => {
+    pill.classList.toggle("active", pill.getAttribute("data-mapmode") === mapValue);
   });
 }
 
@@ -3938,8 +3958,21 @@ document.querySelectorAll(".difficulty-pill[data-difficulty]").forEach(pill => {
   });
 });
 
+document.querySelectorAll(".difficulty-pill[data-mapmode]").forEach(pill => {
+  pill.addEventListener("click", () => {
+    const value = pill.getAttribute("data-mapmode");
+    const select = $("mapMode");
+    if (!select) return;
+    if (![...select.options].some(opt => opt.value === value)) return;
+    select.value = value;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    syncDifficultyHeroVisibility();
+  });
+});
+
 $("questionType")?.addEventListener("change", syncDifficultyHeroVisibility);
 $("cityDifficulty")?.addEventListener("change", syncDifficultyHeroVisibility);
+$("mapMode")?.addEventListener("change", syncDifficultyHeroVisibility);
 syncDifficultyHeroVisibility();
 
 warmCityPool(questionCountForOptions(getSetupOptions()), getSetupOptions()).catch(() => {});
