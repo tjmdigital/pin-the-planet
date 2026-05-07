@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v104-roast-mode";
+const PTP_APP_VERSION = "v105-neutral-roasts";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -257,13 +257,13 @@ function verdictForDistance(distanceKm) {
     { max: 20, lines: [
       "Ridiculous. Studied or cheated.",
       "Practically sat outside the town hall.",
-      "Suspiciously good. Check his tabs.",
+      "Suspiciously good. Check their tabs.",
       "That is smug WhatsApp behaviour.",
       "Filthy. Absolutely filthy.",
       "That is annoyingly elite geography.",
       "You’ve either been there or you’re lying.",
       "Borderline forensic. Horrible stuff.",
-      "That pin is a confession. Lock him up.",
+      "That pin is a confession. Lock them up.",
       "Pinpoint accuracy. Genuinely upsetting.",
       "Disgustingly close. Nobody asked for this.",
       "Surgical. The rest of us are crying."
@@ -280,13 +280,13 @@ function verdictForDistance(distanceKm) {
       "Top-tier pinning. Insufferable.",
       "Within walking distance of correct. Awful.",
       "Sharp work. Cue the smug face.",
-      "Absurdly close. He’ll be insufferable for hours."
+      "Absurdly close. They’ll be insufferable for hours."
     ]},
     { max: 200, lines: [
       "Very respectable. Horrible to admit.",
-      "Close enough to pretend he knew it.",
-      "Solid geography dad energy.",
-      "He will now act like this was easy.",
+      "Close enough to pretend they knew it.",
+      "Solid pub-quiz energy.",
+      "They will now act like this was easy.",
       "Strong effort. Smugness incoming.",
       "You can dine out on that for at least a week.",
       "Very decent. Deeply irritating.",
@@ -294,7 +294,7 @@ function verdictForDistance(distanceKm) {
       "Quietly excellent. Loudly annoying.",
       "Same county energy. Worryingly competent.",
       "Disturbingly tidy work.",
-      "He’ll bring this up at three weddings."
+      "They’ll bring this up at three weddings."
     ]},
     { max: 500, lines: [
       "Same general area. We’ll allow it.",
@@ -306,7 +306,7 @@ function verdictForDistance(distanceKm) {
       "Not perfect, but more than good enough.",
       "That’ll do nicely in a pub quiz.",
       "Same time zone, near enough.",
-      "Solid guess. Won’t change his life, but here we are.",
+      "Solid guess. Won’t change their life, but here we are.",
       "A pin with manners.",
       "Acceptable in a court of law."
     ]},
@@ -315,7 +315,7 @@ function verdictForDistance(distanceKm) {
       "Geography GCSE muscle memory kicking in.",
       "Acceptable pub quiz guesswork.",
       "More luck than judgement, but points are points.",
-      "A serviceable guess from a serviceable man.",
+      "A serviceable guess from a serviceable player.",
       "Decent enough. No medals, no shame.",
       "Competent, which feels almost suspicious.",
       "Close enough to avoid public ridicule.",
@@ -367,7 +367,7 @@ function verdictForDistance(distanceKm) {
     ]},
     { max: Infinity, lines: [
       "Wrong hemisphere. Tremendous work.",
-      "Does he know what a city is?",
+      "Do they know what a city is?",
       "That guess needs a written apology.",
       "The map has been used mainly as decoration.",
       "At that point it’s less a guess, more a cry for help.",
@@ -402,7 +402,7 @@ function bestSpotlightCopy(distanceKm) {
     "Best of the lot. Take a bow."
   ], distanceKm);
   if (!Number.isFinite(distanceKm)) return randomFrom([
-    "No idea how he’s won that, but here we are.",
+    "No idea how they’ve won that, but here we are.",
     "Won by default. Stunning lack of competition.",
     "Crowned champion of the empty field."
   ], distanceKm);
@@ -416,7 +416,7 @@ function bestSpotlightCopy(distanceKm) {
     "That pin is a war crime against the rest of the field."
   ], distanceKm);
   if (distanceKm < 250) return randomFrom([
-    "Very sharp. He’ll be unbearable about that.",
+    "Very sharp. They’ll be unbearable about that.",
     "Excellent work, sadly.",
     "That’s properly good and deeply annoying.",
     "Annoyingly close. Cue the smug grin.",
@@ -436,7 +436,7 @@ function bestSpotlightCopy(distanceKm) {
   return randomFrom([
     "Not brilliant, but still enough to win this circus.",
     "Best of a scruffy bunch.",
-    "He’s won, which says worrying things about the field.",
+    "They’ve won, which says worrying things about the field.",
     "Tallest dwarf of the round.",
     "Won by being the least wrong.",
     "Champion of a deeply mediocre round.",
@@ -603,7 +603,7 @@ function countryBestSpotlight(row) {
     "Inside the borders. Insufferable.",
     "Bang inside. Investigate immediately.",
     "Forensic country pinning. Disgusting work.",
-    "Inside the lines. He’ll mention it for a week."
+    "Inside the lines. They’ll mention it for a week."
   ], row.distance);
   if (row.distance < 200) return randomFrom([
     "Couldn’t quite get inside, but heroically close.",
