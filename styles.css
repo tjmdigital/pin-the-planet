@@ -3232,6 +3232,7 @@ body.single-player-game #roomCodeDisplay {
 body.single-player-game #roomCodeLabel {
   letter-spacing: 0.04em;
   opacity: 0.7;
+  margin-bottom: 8px;
 }
 
 /* Country-mode answer outline: gentle glow under the orange polygon. */
