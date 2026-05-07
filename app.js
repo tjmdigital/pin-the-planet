@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v106-uk-grounds";
+const PTP_APP_VERSION = "v107-club-badges";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1030,6 +1030,132 @@ function wrappedGuessForAnswer(guess, answer) {
 // Used by country mode + UK counties + US states - all share the same
 // pin-inside-polygon scoring logic.
 
+// Primary kit colours per UK football club. Used to render the club
+// pill underneath the ground name in ground-uk mode so each team's
+// badge feels like its actual identity.
+const CLUB_COLORS = {
+  "Arsenal": { bg: "#EF0107", text: "#fff" },
+  "Aston Villa": { bg: "#7A003C", text: "#95BFE5" },
+  "Bournemouth": { bg: "#DA291C", text: "#000" },
+  "Brentford": { bg: "#E30613", text: "#fff" },
+  "Brighton & Hove Albion": { bg: "#0057B8", text: "#fff" },
+  "Chelsea": { bg: "#034694", text: "#fff" },
+  "Crystal Palace": { bg: "#1B458F", text: "#C4122E" },
+  "Everton": { bg: "#003399", text: "#fff" },
+  "Fulham": { bg: "#fff", text: "#000" },
+  "Ipswich Town": { bg: "#0033A0", text: "#fff" },
+  "Leicester City": { bg: "#003090", text: "#fff" },
+  "Liverpool": { bg: "#C8102E", text: "#fff" },
+  "Manchester City": { bg: "#6CABDD", text: "#fff" },
+  "Manchester United": { bg: "#DA291C", text: "#fff" },
+  "Newcastle United": { bg: "#241F20", text: "#fff" },
+  "Nottingham Forest": { bg: "#DD0000", text: "#fff" },
+  "Southampton": { bg: "#D71920", text: "#fff" },
+  "Tottenham Hotspur": { bg: "#fff", text: "#132257" },
+  "West Ham United": { bg: "#7A263A", text: "#1BB1E7" },
+  "Wolverhampton Wanderers": { bg: "#FDB913", text: "#000" },
+  "Blackburn Rovers": { bg: "#009EE0", text: "#fff" },
+  "Bristol City": { bg: "#E03A3E", text: "#fff" },
+  "Burnley": { bg: "#6C1D45", text: "#99D6EA" },
+  "Cardiff City": { bg: "#0070B5", text: "#fff" },
+  "Coventry City": { bg: "#4B96D2", text: "#fff" },
+  "Derby County": { bg: "#fff", text: "#000" },
+  "Hull City": { bg: "#F9A03F", text: "#000" },
+  "Leeds United": { bg: "#fff", text: "#1D428A" },
+  "Luton Town": { bg: "#F78F1E", text: "#002F6C" },
+  "Middlesbrough": { bg: "#E11B22", text: "#fff" },
+  "Millwall": { bg: "#001E62", text: "#fff" },
+  "Norwich City": { bg: "#FFF200", text: "#00A650" },
+  "Oxford United": { bg: "#FCEE21", text: "#002B5B" },
+  "Plymouth Argyle": { bg: "#00684A", text: "#fff" },
+  "Portsmouth": { bg: "#001489", text: "#fff" },
+  "Preston North End": { bg: "#fff", text: "#1A2B49" },
+  "Queens Park Rangers": { bg: "#1D5BA4", text: "#fff" },
+  "Sheffield United": { bg: "#EE2737", text: "#fff" },
+  "Sheffield Wednesday": { bg: "#0E4C9C", text: "#fff" },
+  "Stoke City": { bg: "#E03A3E", text: "#fff" },
+  "Sunderland": { bg: "#EB172B", text: "#fff" },
+  "Swansea City": { bg: "#fff", text: "#000" },
+  "Watford": { bg: "#FBEE23", text: "#000" },
+  "West Bromwich Albion": { bg: "#091453", text: "#fff" },
+  "Barnsley": { bg: "#E03A3E", text: "#fff" },
+  "Birmingham City": { bg: "#0050A0", text: "#fff" },
+  "Blackpool": { bg: "#F58220", text: "#fff" },
+  "Bolton Wanderers": { bg: "#fff", text: "#1B4DA0" },
+  "Bristol Rovers": { bg: "#005AAA", text: "#fff" },
+  "Burton Albion": { bg: "#FCB813", text: "#000" },
+  "Cambridge United": { bg: "#FCB823", text: "#000" },
+  "Charlton Athletic": { bg: "#E11B22", text: "#fff" },
+  "Crawley Town": { bg: "#E11B22", text: "#fff" },
+  "Exeter City": { bg: "#E11B22", text: "#fff" },
+  "Huddersfield Town": { bg: "#0073A6", text: "#fff" },
+  "Leyton Orient": { bg: "#E11B22", text: "#fff" },
+  "Lincoln City": { bg: "#E11B22", text: "#fff" },
+  "Mansfield Town": { bg: "#FFCC00", text: "#002B5C" },
+  "Northampton Town": { bg: "#7A1F33", text: "#fff" },
+  "Peterborough United": { bg: "#002B5B", text: "#fff" },
+  "Reading": { bg: "#0033A0", text: "#fff" },
+  "Rotherham United": { bg: "#DD0000", text: "#fff" },
+  "Shrewsbury Town": { bg: "#1A4192", text: "#FCB813" },
+  "Stevenage": { bg: "#D71920", text: "#fff" },
+  "Stockport County": { bg: "#003E7E", text: "#fff" },
+  "Wigan Athletic": { bg: "#0073A6", text: "#fff" },
+  "Wrexham": { bg: "#E11B22", text: "#fff" },
+  "Wycombe Wanderers": { bg: "#002469", text: "#fff" },
+  "AFC Wimbledon": { bg: "#003972", text: "#FFD500" },
+  "Accrington Stanley": { bg: "#E11B22", text: "#fff" },
+  "Barrow": { bg: "#003366", text: "#fff" },
+  "Bradford City": { bg: "#7E1B4F", text: "#FCB813" },
+  "Bromley": { bg: "#fff", text: "#000" },
+  "Carlisle United": { bg: "#003C71", text: "#fff" },
+  "Cheltenham Town": { bg: "#E11B22", text: "#fff" },
+  "Chesterfield": { bg: "#0033A0", text: "#fff" },
+  "Colchester United": { bg: "#1B449C", text: "#fff" },
+  "Crewe Alexandra": { bg: "#E11B22", text: "#fff" },
+  "Doncaster Rovers": { bg: "#E11B22", text: "#fff" },
+  "Fleetwood Town": { bg: "#E11B22", text: "#fff" },
+  "Gillingham": { bg: "#1B449C", text: "#fff" },
+  "Grimsby Town": { bg: "#000", text: "#fff" },
+  "Harrogate Town": { bg: "#FCBA12", text: "#000" },
+  "Milton Keynes Dons": { bg: "#fff", text: "#002469" },
+  "Morecambe": { bg: "#D71920", text: "#fff" },
+  "Newport County": { bg: "#FCB813", text: "#000" },
+  "Notts County": { bg: "#000", text: "#fff" },
+  "Port Vale": { bg: "#fff", text: "#000" },
+  "Salford City": { bg: "#D71920", text: "#fff" },
+  "Swindon Town": { bg: "#D71920", text: "#fff" },
+  "Tranmere Rovers": { bg: "#fff", text: "#002469" },
+  "Walsall": { bg: "#D71920", text: "#fff" },
+  "Aberdeen": { bg: "#E03A3E", text: "#fff" },
+  "Celtic": { bg: "#008000", text: "#fff" },
+  "Dundee": { bg: "#003399", text: "#fff" },
+  "Dundee United": { bg: "#FF6600", text: "#000" },
+  "Heart of Midlothian": { bg: "#7A1F33", text: "#fff" },
+  "Hibernian": { bg: "#005A2B", text: "#fff" },
+  "Kilmarnock": { bg: "#003399", text: "#fff" },
+  "Motherwell": { bg: "#7A1F33", text: "#FCB813" },
+  "Rangers": { bg: "#0033A0", text: "#fff" },
+  "Ross County": { bg: "#002469", text: "#fff" },
+  "St Johnstone": { bg: "#003399", text: "#fff" },
+  "St Mirren": { bg: "#000", text: "#fff" }
+};
+
+function renderClubBadge(question) {
+  const el = $("targetClubBadge");
+  if (!el) return;
+  if (question?.type !== "ground-uk" || !question.club) {
+    el.classList.add("hidden");
+    el.removeAttribute("style");
+    el.textContent = "";
+    return;
+  }
+  const colors = CLUB_COLORS[question.club] || { bg: "#1f2933", text: "#fff" };
+  el.textContent = question.club;
+  el.style.background = colors.bg;
+  el.style.color = colors.text;
+  el.classList.remove("hidden");
+}
+
 const POLYGON_TYPES = new Set(["country", "county-uk", "state-us"]);
 
 function isPolygonType(type) {
@@ -2015,10 +2141,12 @@ function renderGame() {
   if (!state.game.started) {
     $("roundState").textContent = isSolo ? "Ready when you are" : "Waiting for host to start";
     $("targetName").textContent = "Get ready";
+    renderClubBadge(null);
     $("playerHint").textContent = isSolo ? "Start your solo run when you're ready." : (state.isHost ? "Start the first round when everyone has joined." : "The quiz will begin shortly.");
   } else if (state.game.revealed) {
     $("roundState").textContent = `${isFinalRound ? "Final answer revealed" : isPracticeRound() ? "Practice answer revealed" : `Answer revealed - ${displayLabel}`}`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
+    renderClubBadge(question);
     // Also show the category on reveal in mixed packs - "answer was a
     // CITY: Cairo" reads naturally.
     if (state.game.questionType === "daily" && question?.type) {
@@ -2037,6 +2165,7 @@ function renderGame() {
   } else if (timeUp) {
     $("roundState").textContent = `${displayLabel} - time's up`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
+    renderClubBadge(question);
     $("playerHint").textContent = isSolo ? "Time is up. Score the round to see how close you were." : (state.isHost ? "Time is up. Reveal the answer when you're ready." : "Time is up. Waiting for the answer reveal.");
     $("allGuessesBanner").textContent = isSolo ? "⏰ Time's up - score your round." : (state.isHost ? "⏰ Time's up - reveal time." : "⏰ Time's up - waiting for host.");
     $("allGuessesBanner").classList.remove("hidden");
@@ -2049,6 +2178,7 @@ function renderGame() {
     const noun = polygonNoun(question);
     $("roundState").textContent = `${displayLabel} - ${isPolygonRound ? `click inside the ${noun}` : "place your pin"}`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
+    renderClubBadge(question);
     // Category chip ("CITY" / "COUNTRY" / "COUNTY" / "STATE") only
     // shown for mixed packs where it actually adds clarity. Single-
     // type packs (a country-only solo run) don't need it.

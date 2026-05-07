@@ -3730,6 +3730,23 @@ body.join-link-mode .site-footer { display: none; }
 }
 .target-category.hidden { display: none !important; }
 
+/* Club badge under the ground name in UK football grounds mode.
+   Background and text colour are set inline per club so the pill
+   reflects each team's primary kit colours. */
+.club-badge {
+  display: inline-block;
+  margin: 8px 0 4px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18) inset;
+}
+.club-badge.hidden { display: none !important; }
+
 /* Hero-level city difficulty pills (only visible when World cities pack
    is selected). Sits between the pack grid and the Create / Play
    buttons. */
