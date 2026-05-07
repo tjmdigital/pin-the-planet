@@ -75,7 +75,7 @@
             <div class="daily-card-title-block">
               <p class="tiny muted">Daily challenge</p>
               <h2 id="dailyCardTitle">Today's pack</h2>
-              <p id="dailyCardSubtitle" class="muted">5 cities, 5 countries · same for every player today.</p>
+              <p id="dailyCardSubtitle" class="muted">4 cities, 4 countries · same for every player today.</p>
             </div>
             <div id="dailyStreakChip" class="daily-streak-chip hidden">
               <span class="daily-streak-emoji">🔥</span>
@@ -118,6 +118,15 @@
               <button type="button" class="pack-card" data-pack-type="country">🗺️ <span>Countries</span></button>
               <button type="button" class="pack-card" data-pack-type="county-uk">🇬🇧 <span>UK counties</span></button>
               <button type="button" class="pack-card" data-pack-type="state-us">🇺🇸 <span>US states</span></button>
+            </div>
+          </div>
+
+          <div id="difficultyHero" class="difficulty-hero">
+            <p class="tiny muted">City difficulty</p>
+            <div class="difficulty-pills">
+              <button type="button" class="difficulty-pill" data-difficulty="familiar">Familiar</button>
+              <button type="button" class="difficulty-pill active" data-difficulty="mixed">Mixed</button>
+              <button type="button" class="difficulty-pill" data-difficulty="chaos">Chaos</button>
             </div>
           </div>
 
@@ -364,6 +373,7 @@
           <div class="map-overlay">
             <div id="countdownDisplay" class="timer hidden">20</div>
             <p id="roundState" class="small muted">Waiting for host</p>
+            <p id="targetCategory" class="target-category hidden"></p>
             <div id="targetName" class="target">Join the room</div>
             <p id="playerHint" class="small muted" style="margin-top: 6px;">Click the map to place your guess.</p>
             <div id="allGuessesBanner" class="ready-banner hidden">All guesses are in - reveal time.</div>

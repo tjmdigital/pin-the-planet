@@ -213,8 +213,10 @@ function dateSeed(dateStr) {
   return parseInt(String(dateStr).replace(/-/g, ""), 10);
 }
 
-const DAILY_CITY_COUNT = 5;
-const DAILY_COUNTRY_COUNT = 5;
+// 4 + 4 = 8 rounds ~ 4 minutes at 30s per round, comfortable for a
+// daily quick-fire format. Was 10 originally; trimmed for pace.
+const DAILY_CITY_COUNT = 4;
+const DAILY_COUNTRY_COUNT = 4;
 
 function buildDailyQuestions(debug) {
   const dailyDate = todayUtcDate();

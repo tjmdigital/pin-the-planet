@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v97-headline-aligned";
+const PTP_APP_VERSION = "v98-family-feedback";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -2003,6 +2003,9 @@ function renderGame() {
 
   $("allGuessesBanner").classList.add("hidden");
   $("allGuessesBanner").classList.remove("time-up");
+  // Default the category chip off; the live-round branch turns it on
+  // for mixed packs only. Hidden in pre-start, reveal, and time-up.
+  $("targetCategory")?.classList.add("hidden");
 
   if (!state.game.started) {
     $("roundState").textContent = isSolo ? "Ready when you are" : "Waiting for host to start";
@@ -2011,6 +2014,14 @@ function renderGame() {
   } else if (state.game.revealed) {
     $("roundState").textContent = `${isFinalRound ? "Final answer revealed" : isPracticeRound() ? "Practice answer revealed" : `Answer revealed - ${displayLabel}`}`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
+    // Also show the category on reveal in mixed packs - "answer was a
+    // CITY: Cairo" reads naturally.
+    if (state.game.questionType === "daily" && question?.type) {
+      const labels = { "city": "CITY", "country": "COUNTRY", "county-uk": "COUNTY", "state-us": "STATE" };
+      const lbl = labels[question.type];
+      const el = $("targetCategory");
+      if (lbl && el) { el.textContent = lbl; el.classList.remove("hidden"); }
+    }
     $("playerHint").textContent = isFinalRound
       ? (isSolo ? "Solo run finished. See if you set a new best." : "Game finished. Prepare the excuses.")
       : isSolo
@@ -2033,6 +2044,27 @@ function renderGame() {
     const noun = polygonNoun(question);
     $("roundState").textContent = `${displayLabel} - ${isPolygonRound ? `click inside the ${noun}` : "place your pin"}`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
+    // Category chip ("CITY" / "COUNTRY" / "COUNTY" / "STATE") only
+    // shown for mixed packs where it actually adds clarity. Single-
+    // type packs (a country-only solo run) don't need it.
+    const categoryEl = $("targetCategory");
+    if (categoryEl) {
+      const isMixedPack = state.game.questionType === "daily";
+      let label = "";
+      if (isMixedPack && question?.type) {
+        const t = question.type;
+        if (t === "city") label = "CITY";
+        else if (t === "country") label = "COUNTRY";
+        else if (t === "county-uk") label = "COUNTY";
+        else if (t === "state-us") label = "STATE";
+      }
+      if (label) {
+        categoryEl.textContent = label;
+        categoryEl.classList.remove("hidden");
+      } else {
+        categoryEl.classList.add("hidden");
+      }
+    }
     const polygonHint = isPolygonRound ? ` Inside the ${noun} = full points.` : "";
     $("playerHint").textContent = isSolo
       ? `Click the map to place or change your pin before time runs out.${polygonHint}`
@@ -2906,7 +2938,13 @@ function playerEmojiIcon(row, rank, worstId) {
 
 function renderPersonalResult() {
   const card = $("personalResultCard");
-  if (!state.game?.revealed || isFinalRevealState()) {
+  // Hide once the final leaderboard overlay actually appears (it
+  // covers the whole map anyway), but keep showing during the
+  // pre-final-overlay window so solo players see their last round's
+  // score and verdict instead of jumping straight to the total.
+  const finalOverlayShowing = isFinalRevealState()
+    && state.finalOverlayVisibleKey === finalOverlayKey();
+  if (!state.game?.revealed || finalOverlayShowing) {
     card.classList.add("hidden");
     card.innerHTML = "";
     return;
@@ -3664,7 +3702,7 @@ function renderDailyCard() {
   const chip = $("dailyStreakChip");
 
   if (titleEl) titleEl.textContent = `Today's pack · ${formatDailyDateForDisplay(today)}`;
-  if (subtitleEl) subtitleEl.textContent = "5 cities, 5 countries · same questions for every player today.";
+  if (subtitleEl) subtitleEl.textContent = "4 cities, 4 countries · same questions for every player today.";
 
   if (playedToday) {
     if (statusEl) statusEl.textContent = `Best today: ${Number(playedToday.bestScore || 0).toLocaleString()} · ${playedToday.attempts} ${playedToday.attempts === 1 ? "attempt" : "attempts"}`;
@@ -3868,8 +3906,42 @@ document.querySelectorAll(".pack-card[data-pack-type]").forEach(btn => {
       select.value = packType;
       select.dispatchEvent(new Event("change", { bubbles: true }));
     }
+    syncDifficultyHeroVisibility();
   });
 });
+
+// Hero-level city difficulty: visible only when World cities pack is
+// selected. Three pills (Familiar / Mixed / Chaos) drive the existing
+// cityDifficulty select so all the downstream warming/persistence is
+// handled by the existing change listener.
+function syncDifficultyHeroVisibility() {
+  const hero = $("difficultyHero");
+  if (!hero) return;
+  const isCity = ($("questionType")?.value || "city") === "city";
+  hero.hidden = !isCity;
+  // Reflect current dropdown value on the pills.
+  const value = $("cityDifficulty")?.value || "mixed";
+  document.querySelectorAll(".difficulty-pill[data-difficulty]").forEach(pill => {
+    pill.classList.toggle("active", pill.getAttribute("data-difficulty") === value);
+  });
+}
+
+document.querySelectorAll(".difficulty-pill[data-difficulty]").forEach(pill => {
+  pill.addEventListener("click", () => {
+    const value = pill.getAttribute("data-difficulty");
+    const select = $("cityDifficulty");
+    if (!select) return;
+    if (![...select.options].some(opt => opt.value === value)) return;
+    select.value = value;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    syncDifficultyHeroVisibility();
+  });
+});
+
+$("questionType")?.addEventListener("change", syncDifficultyHeroVisibility);
+$("cityDifficulty")?.addEventListener("change", syncDifficultyHeroVisibility);
+syncDifficultyHeroVisibility();
+
 warmCityPool(questionCountForOptions(getSetupOptions()), getSetupOptions()).catch(() => {});
 renderDailyCard();
 $("roundDuration").addEventListener("change", () => {});
