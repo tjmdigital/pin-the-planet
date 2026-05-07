@@ -3229,6 +3229,9 @@ body.single-player-game #roomCodeDisplay {
   text-transform: uppercase;
   opacity: 0.8;
 }
+#roomCodeLabel {
+  margin-bottom: 8px;
+}
 body.single-player-game #roomCodeLabel {
   letter-spacing: 0.04em;
   opacity: 0.7;
