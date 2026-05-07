@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v103-borders-revert";
+const PTP_APP_VERSION = "v104-roast-mode";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -753,7 +753,7 @@ function getSetupOptions() {
     })(),
     cityDifficulty: $("cityDifficulty")?.value || "mixed",
     mapMode: $("mapMode")?.value || "hardcore",
-    toneMode: $("toneMode")?.value || "lads",
+    toneMode: $("toneMode")?.value || "roast",
     scoringMode: $("scoringMode")?.value || "distance"
   };
 }
@@ -809,7 +809,7 @@ function questionCountForOptions(options) {
 }
 
 function currentToneMode() {
-  return state.game?.toneMode || $("toneMode")?.value || "lads";
+  return state.game?.toneMode || $("toneMode")?.value || "roast";
 }
 
 function isPracticeRound() {
@@ -1457,7 +1457,7 @@ async function playDailyChallenge() {
     return;
   }
 
-  const userTone = $("toneMode")?.value || state.game?.toneMode || "lads";
+  const userTone = $("toneMode")?.value || state.game?.toneMode || "roast";
   const rawHostName = $("hostName")?.value?.trim();
   const hostName = !rawHostName || rawHostName.toLowerCase() === "quiz host" ? "You" : rawHostName;
 
@@ -3239,7 +3239,7 @@ async function newGameSamePlayers() {
     questionType: state.game.questionType || "city",
     cityDifficulty: state.game.cityDifficulty || "mixed",
     mapMode: state.game.mapMode || "hardcore",
-    toneMode: state.game.toneMode || "lads",
+    toneMode: state.game.toneMode || "roast",
     scoringMode: state.game.scoringMode || "distance",
     singlePlayer: Boolean(state.game.singlePlayer)
   };
@@ -3750,13 +3750,13 @@ function updateSetupSummary() {
   const questionType = setupSelectLabel("questionType") || "World cities";
   const difficulty = setupSelectLabel("cityDifficulty") || "Mixed";
   const mapHelp = setupSelectLabel("mapMode") || "Hardcore - no borders";
-  const tone = setupSelectLabel("toneMode") || "Lads mode";
+  const tone = setupSelectLabel("toneMode") || "Roast mode";
   const scoring = setupSelectLabel("scoringMode") || "Distance points";
 
   const playableRounds = rounds + (practice ? 1 : 0);
   const approxMinutes = Math.max(1, Math.ceil((playableRounds * (timerSeconds + 12)) / 60));
 
-  const toneSummary = tone === "Lads mode"
+  const toneSummary = tone === "Roast mode"
     ? "brutal roasts and pub-quiz banter"
     : tone === "Friendly"
       ? "friendly feedback"
@@ -4167,7 +4167,7 @@ function applySoloUrlOverrides(params) {
     setSelect("mapMode", params.get("mapMode"), ["hardcore", "outlines", "labels"]);
   }
   if (params.has("tone") || params.has("toneMode")) {
-    setSelect("toneMode", params.get("toneMode") || params.get("tone"), ["lads", "friendly", "school"]);
+    setSelect("toneMode", params.get("toneMode") || params.get("tone"), ["roast", "friendly", "school"]);
   }
   if (params.has("scoring") || params.has("scoringMode")) {
     setSelect("scoringMode", params.get("scoringMode") || params.get("scoring"));
