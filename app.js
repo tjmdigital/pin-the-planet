@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v108-badge-cleanup";
+const PTP_APP_VERSION = "v109-results-pack-label";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -3725,9 +3725,34 @@ function ordinal(rank) {
   return `${rank}th`;
 }
 
+function packLabelForResults() {
+  const game = state.game;
+  if (!game) return null;
+  const rounds = Number(game.questions?.length || 0);
+  const roundsSuffix = rounds ? ` · ${rounds} ${rounds === 1 ? "round" : "rounds"}` : "";
+  if (game.questionType === "daily") {
+    const dateKey = game.dailyDate || todayUtcDateString();
+    const formatted = formatDailyDateForDisplay(dateKey);
+    return `📅 Daily challenge · ${formatted}`;
+  }
+  const labels = {
+    city: "🌍 World cities",
+    country: "🗺️ Countries",
+    "county-uk": "🇬🇧 UK counties",
+    "state-us": "🇺🇸 US states",
+    "ground-uk": "⚽ UK football grounds"
+  };
+  const label = labels[game.questionType];
+  if (!label) return null;
+  return `${label}${roundsSuffix}`;
+}
+
 function buildResultsText() {
   const rows = validPlayersForResults().sort((a, b) => (b.total || 0) - (a.total || 0));
-  const lines = ["🌍 Pin the Planet result", ""];
+  const lines = ["🌍 Pin the Planet result"];
+  const packLabel = packLabelForResults();
+  if (packLabel) lines.push(packLabel);
+  lines.push("");
   const isMultiplayer = !isSoloGame() && rows.length > 1;
 
   if (rows.length) {
