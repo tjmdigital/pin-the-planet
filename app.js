@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v102-relevant-borders";
+const PTP_APP_VERSION = "v103-borders-revert";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -61,33 +61,8 @@ const state = {
   prefetchPromise: null,
   prefetchKey: null,
   baseLayer: null,
-  baseMapMode: null,
-  bordersOverlay: null,
-  bordersOverlayKey: null
+  baseMapMode: null
 };
-
-// Cache for pack-level GeoJSON fetched to render "include borders" overlays.
-// Each pack file is ~100-550KB so we fetch once and reuse for the session.
-const PACK_GEOJSON_CACHE = {};
-const PACK_GEOJSON_PROMISES = {};
-const PACK_GEOJSON_PATHS = {
-  country: "/data/countries.geojson",
-  "county-uk": "/data/counties-uk.geojson",
-  "state-us": "/data/states-us.geojson"
-};
-
-function loadPackGeoJSON(packType) {
-  const path = PACK_GEOJSON_PATHS[packType];
-  if (!path) return Promise.resolve(null);
-  if (PACK_GEOJSON_CACHE[packType]) return Promise.resolve(PACK_GEOJSON_CACHE[packType]);
-  if (PACK_GEOJSON_PROMISES[packType]) return PACK_GEOJSON_PROMISES[packType];
-  PACK_GEOJSON_PROMISES[packType] = fetch(path)
-    .then(r => r.ok ? r.json() : null)
-    .then(json => { if (json) PACK_GEOJSON_CACHE[packType] = json; return json; })
-    .catch(() => null)
-    .finally(() => { delete PACK_GEOJSON_PROMISES[packType]; });
-  return PACK_GEOJSON_PROMISES[packType];
-}
 
 function getTrafficSource() {
   const params = new URLSearchParams(window.location.search);
@@ -1308,14 +1283,7 @@ function scheduleOverlayReflowAfterFonts() {
 
 function setBaseMapLayer(mode = "hardcore") {
   if (!state.map) return;
-  let safeMode = mode || "hardcore";
-  // For polygon packs (countries / UK counties / US states) the "outlines"
-  // toggle is rendered as a GeoJSON overlay of just the pack's polygons -
-  // see applyBordersOverlay - so the basemap stays clean. The CARTO tiles
-  // would otherwise show every level of admin boundary, which is noisy.
-  if (safeMode === "outlines" && isPolygonPackActive()) {
-    safeMode = "hardcore";
-  }
+  const safeMode = mode || "hardcore";
   if (state.baseLayer && state.baseMapMode === safeMode) return;
 
   if (state.baseLayer) {
@@ -1341,56 +1309,6 @@ function setBaseMapLayer(mode = "hardcore") {
   const config = layers[safeMode] || layers.hardcore;
   state.baseLayer = L.tileLayer(config.url, config.options).addTo(state.map);
   state.baseMapMode = safeMode;
-}
-
-function isPolygonPackActive() {
-  const t = state.game?.questionType || $("questionType")?.value || "city";
-  return POLYGON_TYPES.has(t);
-}
-
-// When "Include borders" is enabled for a polygon pack, overlay just that
-// pack's polygons as thin outlines so players see the relevant geography
-// (country borders for country mode, state borders for US states, county
-// borders for UK counties) without the noise of every admin level.
-function applyBordersOverlay() {
-  if (!state.map) return;
-  const packType = state.game?.questionType || $("questionType")?.value || "city";
-  const mapMode = state.game?.mapMode || $("mapMode")?.value || "hardcore";
-  const wantOverlay = mapMode === "outlines" && POLYGON_TYPES.has(packType);
-  const desiredKey = wantOverlay ? packType : null;
-
-  if (state.bordersOverlayKey === desiredKey && state.bordersOverlay) return;
-  if (state.bordersOverlayKey === desiredKey && !state.bordersOverlay && !wantOverlay) return;
-
-  if (state.bordersOverlay) {
-    try { state.map.removeLayer(state.bordersOverlay); } catch (_) {}
-    state.bordersOverlay = null;
-  }
-  state.bordersOverlayKey = desiredKey;
-
-  if (!wantOverlay) return;
-
-  loadPackGeoJSON(packType).then((geo) => {
-    // Bail if the user changed pack/mode while the fetch was in flight.
-    if (!geo || !state.map || state.bordersOverlayKey !== packType) return;
-    try {
-      const layer = L.geoJSON(geo, {
-        style: {
-          color: "#1f2933",
-          weight: 0.7,
-          opacity: 0.55,
-          fill: false,
-          interactive: false
-        }
-      });
-      layer.addTo(state.map);
-      // Sit below the answer/guess markers and the revealed countryShape.
-      if (layer.bringToBack) layer.bringToBack();
-      state.bordersOverlay = layer;
-    } catch (_) {
-      // Overlay is decorative - swallow failures rather than break the game.
-    }
-  });
 }
 
 // Default map view per question pack. Sub-national packs zoom in on
@@ -1448,7 +1366,6 @@ function initMap() {
   }
 
   setBaseMapLayer(state.game?.mapMode || getSetupOptions().mapMode);
-  applyBordersOverlay();
 
   state.map.on("click", async (event) => {
     if (!state.game) return;
@@ -2163,7 +2080,6 @@ function renderGame() {
   }
 
   setBaseMapLayer(state.game.mapMode || "hardcore");
-  applyBordersOverlay();
   renderPlayers();
   renderRoundStatus();
   renderLeaderboard();
