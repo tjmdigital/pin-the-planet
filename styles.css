@@ -3685,6 +3685,10 @@ body.join-link-mode .site-footer { display: none; }
 .pack-section-hero {
   margin: 18px 0 8px;
 }
+.pack-section-hero > p,
+.difficulty-hero > p {
+  margin-bottom: 10px;
+}
 .pack-section-hero .pack-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
