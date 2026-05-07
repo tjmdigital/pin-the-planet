@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v105-neutral-roasts";
+const PTP_APP_VERSION = "v106-uk-grounds";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -749,7 +749,7 @@ function getSetupOptions() {
     practiceEnabled,
     questionType: (() => {
       const v = $("questionType")?.value || "city";
-      return ["city", "country", "county-uk", "state-us"].includes(v) ? v : "city";
+      return ["city", "country", "county-uk", "state-us", "ground-uk"].includes(v) ? v : "city";
     })(),
     cityDifficulty: $("cityDifficulty")?.value || "mixed",
     mapMode: $("mapMode")?.value || "hardcore",
@@ -1002,10 +1002,10 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function pointsForDistance(distanceKm, hasGuess = true) {
+function pointsForDistance(distanceKm, hasGuess = true, scaleKm = 1700) {
   if (!hasGuess || !Number.isFinite(distanceKm)) return 0;
 
-  const base = Math.round(1000 * Math.exp(-distanceKm / 1700));
+  const base = Math.round(1000 * Math.exp(-distanceKm / scaleKm));
   return Math.max(MIN_SUBMITTED_SCORE, base);
 }
 
@@ -1188,7 +1188,11 @@ function scoreGuessForQuestion(guess, question) {
     return { hasGuess: true, distance, points, inside };
   }
   const distance = haversineKm(guess.lat, guess.lng, question.lat, question.lng);
-  const points = pointsForDistance(distance, true);
+  // UK football grounds all sit inside one country, so the world-scale
+  // 1700km decay would give too-generous scores - a 200km miss is a
+  // long way in UK terms. Tighten it so close-to-the-right-city wins.
+  const scale = question.type === "ground-uk" ? 220 : 1700;
+  const points = pointsForDistance(distance, true, scale);
   return { hasGuess: true, distance, points, inside: false };
 }
 
@@ -1320,6 +1324,7 @@ function defaultMapViewForPack(packType, question) {
   const t = question?.type || packType;
   switch (t) {
     case "county-uk":
+    case "ground-uk":
       return { center: [54.0, -3.0], zoom: 6 };
     case "state-us":
       return { center: [39.0, -98.0], zoom: 4 };
@@ -3920,7 +3925,8 @@ function syncDifficultyHeroVisibility() {
   const packType = $("questionType")?.value || "city";
   const isCity = packType === "city";
   // Polygon modes (countries / counties / states) get the borders
-  // toggle. City mode gets the difficulty pills. Daily uses defaults.
+  // toggle. City mode gets the difficulty pills. Daily and the
+  // UK football grounds pack use defaults - no extra controls.
   const isPolygon = ["country", "county-uk", "state-us"].includes(packType);
   if (diffHero) diffHero.hidden = !isCity;
   if (borderHero) borderHero.hidden = !isPolygon;
@@ -4158,7 +4164,7 @@ function applySoloUrlOverrides(params) {
   };
 
   if (params.has("questionType")) {
-    setSelect("questionType", params.get("questionType"), ["city", "country"]);
+    setSelect("questionType", params.get("questionType"), ["city", "country", "county-uk", "state-us", "ground-uk"]);
   }
   if (params.has("difficulty") || params.has("cityDifficulty")) {
     setSelect("cityDifficulty", params.get("cityDifficulty") || params.get("difficulty"), ["familiar", "mixed", "chaos"]);

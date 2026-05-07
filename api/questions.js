@@ -13,6 +13,7 @@ const path = require("path");
 const familiarPool = require("../data/cities.familiar.json");
 const mixedExtrasPool = require("../data/cities.mixed.json");
 const chaosPool = require("../data/cities.chaos.json");
+const groundsUkPool = require("../data/grounds-uk.json");
 
 // Geometry datasets are loaded lazily on first request so city-only
 // requests don't pay the JSON.parse cost.
@@ -46,7 +47,7 @@ function loadStateUsFeatures() {
   return result;
 }
 
-const API_VERSION = "v94-counties-states";
+const API_VERSION = "v95-uk-grounds";
 
 const UK_US_COUNTRIES = new Set(["United Kingdom", "United States"]);
 const FAMILIAR_COUNTRIES = new Set([
@@ -371,6 +372,47 @@ function buildSubNationalQuestions(count, debug, opts) {
   }));
 }
 
+// UK football grounds: point-based pack, scored on distance to the
+// stadium coordinate. Same shape as a city question so the existing
+// scoring + reveal pipeline works unchanged - the client just uses a
+// tighter distance decay because every ground sits inside the UK.
+function buildGroundUkQuestions(count, debug) {
+  const target = clamp(Number(count || 10), 1, 25);
+  const pool = groundsUkPool.filter(g => Number.isFinite(g.lat) && Number.isFinite(g.lng));
+
+  debug.questionType = "ground-uk";
+  debug.resolvedDifficulty = "ground-uk";
+  debug.pool = "ground-uk-pool";
+  debug.poolName = "ground-uk";
+  debug.poolSize = pool.length;
+  debug.uniqueCountries = 1;
+  debug.liveWikidataAttempted = false;
+  debug.geometryIncluded = false;
+  debug.mode = "ground-uk";
+  debug.requestedCount = target;
+
+  const shuffled = shuffleCopy(pool);
+  const picks = shuffled.slice(0, target);
+  while (picks.length < target && shuffled.length > 0) {
+    picks.push(shuffled[picks.length % shuffled.length]);
+  }
+
+  return picks.map((g) => ({
+    id: `ground:${g.club}`,
+    type: "ground-uk",
+    name: g.name,
+    displayName: g.displayName || g.name,
+    sourceName: g.ground || g.name,
+    club: g.club,
+    ground: g.ground,
+    league: g.league,
+    city: g.city,
+    country: "United Kingdom",
+    lat: g.lat,
+    lng: g.lng
+  }));
+}
+
 function makeQuestionPayload(req) {
   // Daily-challenge short-circuit. Ignores other params; questions are
   // entirely determined by today's UTC date.
@@ -396,7 +438,7 @@ function makeQuestionPayload(req) {
   const difficulty = ["familiar", "mixed", "chaos"].includes(rawDifficulty) ? rawDifficulty : "mixed";
   const count = clamp(Number(req.query.count || 10), 1, 25);
   const rawType = String(req.query.questionType || "city").toLowerCase();
-  const KNOWN_TYPES = new Set(["city", "country", "county-uk", "state-us"]);
+  const KNOWN_TYPES = new Set(["city", "country", "county-uk", "state-us", "ground-uk"]);
   const questionType = KNOWN_TYPES.has(rawType) ? rawType : "city";
   const options = {
     questionType,
@@ -461,6 +503,22 @@ function makeQuestionPayload(req) {
       difficulty: "state-us",
       mode: "state-us",
       source: "state-us-pool",
+      debug,
+      questions
+    };
+  }
+
+  if (questionType === "ground-uk") {
+    const questions = buildGroundUkQuestions(count, debug);
+    debug.requestedCityDifficulty = difficulty;
+    return {
+      apiVersion: API_VERSION,
+      generatedAt: new Date().toISOString(),
+      count: questions.length,
+      questionType: "ground-uk",
+      difficulty: "ground-uk",
+      mode: "ground-uk",
+      source: "ground-uk-pool",
       debug,
       questions
     };
