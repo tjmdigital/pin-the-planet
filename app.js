@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v110-retina-tiles";
+const PTP_APP_VERSION = "v111-zoom-9";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1489,7 +1489,7 @@ function initMap() {
   state.map = L.map("map", {
     worldCopyJump: false,
     minZoom: 2,
-    maxZoom: 8,
+    maxZoom: 9,
     zoomControl: false,
     bounceAtZoomLimits: false,
     inertia: !isMobileViewport,
