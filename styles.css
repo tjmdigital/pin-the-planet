@@ -199,17 +199,21 @@ label {
 }
 
 .timer {
+  position: absolute;
+  top: 8px;
+  left: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 74px;
-  padding: 6px 10px;
+  min-width: 42px;
+  padding: 3px 9px;
   border-radius: 999px;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 950;
   background: rgba(255,255,255,0.1);
   border: 1px solid var(--border);
-  margin-bottom: 8px;
+  margin: 0;
+  z-index: 1;
 }
 
 .timer.hot {
@@ -1452,10 +1456,9 @@ aside.card.stack {
   }
 
   .timer {
-    min-width: 58px;
-    padding: 4px 8px;
-    font-size: 17px;
-    margin-bottom: 5px;
+    min-width: 38px;
+    padding: 3px 8px;
+    font-size: 14px;
   }
 
   .ready-banner {
@@ -2275,10 +2278,9 @@ body.in-game {
   }
 
   .timer {
-    min-width: 52px;
-    padding: 4px 7px;
-    font-size: 16px;
-    margin-bottom: 4px;
+    min-width: 36px;
+    padding: 3px 7px;
+    font-size: 13px;
   }
 
   .round-spotlight-overlay {
@@ -2607,10 +2609,9 @@ body.in-game {
   }
 
   .timer {
-    min-width: 52px;
-    padding: 4px 7px;
-    font-size: 16px;
-    margin-bottom: 4px;
+    min-width: 36px;
+    padding: 3px 7px;
+    font-size: 13px;
   }
 
   .round-spotlight-overlay {
@@ -3188,22 +3189,27 @@ body.final-overlay-active #mobileHostBar {
   display: none !important;
 }
 body.final-overlay-active.has-mobile-host-bar {
+  padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
 
 /* Let the final panel grow to fit its content on mobile so adding
    another action button (e.g. Home) doesn't push the action row into
-   an internal scroll. Allow the overlay to scroll vertically if the
-   panel is taller than the map card it sits inside. */
+   an internal scroll. The map card collapses to the panel's natural
+   height instead of holding 70svh of empty space. */
 @media (max-width: 860px) {
   .final-board {
     max-height: none !important;
   }
-  .final-map-overlay {
-    align-items: flex-start;
-    overflow-y: auto;
-    padding-top: 18px;
-    padding-bottom: 18px;
+  body.final-overlay-active .map-card {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+  body.final-overlay-active .final-map-overlay {
+    position: static !important;
+    overflow: visible !important;
+    padding: 12px !important;
+    align-items: stretch;
   }
 }
 
