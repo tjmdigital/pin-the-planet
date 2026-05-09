@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v112-mobile-overlay-tidy";
+const PTP_APP_VERSION = "v113-final-panel-grow";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;

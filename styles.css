@@ -3180,6 +3180,33 @@ body.final-overlay-active #mobileLeaveBtn {
   display: none !important;
 }
 
+/* The mobile host bar duplicates Play again / Copy results which are
+   already inside the final panel, and on small viewports it ends up
+   visually overlapping the panel. Hide it while the final overlay is
+   showing so the panel breathes. */
+body.final-overlay-active #mobileHostBar {
+  display: none !important;
+}
+body.final-overlay-active.has-mobile-host-bar {
+  padding-bottom: 0 !important;
+}
+
+/* Let the final panel grow to fit its content on mobile so adding
+   another action button (e.g. Home) doesn't push the action row into
+   an internal scroll. Allow the overlay to scroll vertically if the
+   panel is taller than the map card it sits inside. */
+@media (max-width: 860px) {
+  .final-board {
+    max-height: none !important;
+  }
+  .final-map-overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+}
+
 body.final-overlay-active .final-map-overlay.show {
   z-index: 3000;
 }
