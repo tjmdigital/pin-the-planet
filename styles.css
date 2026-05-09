@@ -3172,6 +3172,14 @@ body.final-overlay-active .leaflet-control-attribution {
   display: none !important;
 }
 
+/* On the final-results screen the standalone Leave buttons clash with
+   the in-panel Home / Try again actions, so hide them while the final
+   overlay is up. The Home button inside the panel takes their job. */
+body.final-overlay-active #leaveBtn,
+body.final-overlay-active #mobileLeaveBtn {
+  display: none !important;
+}
+
 body.final-overlay-active .final-map-overlay.show {
   z-index: 3000;
 }

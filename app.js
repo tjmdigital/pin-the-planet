@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v111-zoom-9";
+const PTP_APP_VERSION = "v112-mobile-overlay-tidy";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -2185,7 +2185,7 @@ function renderGame() {
     const polygonType = question?.type || state.game.questionType;
     const isPolygonRound = isPolygonType(polygonType);
     const noun = polygonNoun(question);
-    $("roundState").textContent = `${displayLabel} - ${isPolygonRound ? `click inside the ${noun}` : "place your pin"}`;
+    $("roundState").textContent = displayLabel;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
     renderClubBadge(question);
     // Category chip ("CITY" / "COUNTRY" / "COUNTY" / "STATE") only
@@ -2209,12 +2209,12 @@ function renderGame() {
         categoryEl.classList.add("hidden");
       }
     }
-    const polygonHint = isPolygonRound ? ` Inside the ${noun} = full points.` : "";
+    const polygonHint = isPolygonRound ? ` Inside = full points.` : "";
     $("playerHint").textContent = isSolo
-      ? `Click the map to place or change your pin before time runs out.${polygonHint}`
+      ? `Drop your pin on the map.${polygonHint}`
       : (state.isHost
-        ? `Click the map to submit your own guess. The round closes automatically once everyone has guessed.${polygonHint}`
-        : `Click anywhere on the map to submit or change your guess.${polygonHint}`);
+        ? `Drop your pin on the map. The round closes once everyone's in.${polygonHint}`
+        : `Drop your pin on the map.${polygonHint}`);
     // In solo mode the player can keep repositioning, so the "everyone is
     // in" banner would be misleading. Skip it entirely for solo.
     if (!isSolo && (allIn || roundClosedByAll)) {
@@ -2860,6 +2860,7 @@ function renderFinalMapOverlay() {
         <button id="finalShareBtn" class="success">🔗 Share score</button>
         <button id="finalCopyResultsBtn" class="secondary">Copy results</button>
         ${state.isHost ? `<button id="finalDailyReplayBtn" class="secondary">Try again</button>` : ""}
+        <button id="finalHomeBtn" class="secondary">🏠 Home</button>
       </div>
     </div>
   ` : isSolo ? `
@@ -2897,6 +2898,7 @@ function renderFinalMapOverlay() {
         <button id="finalShareBtn" class="secondary">🔗 Share</button>
         <button id="finalCopyResultsBtn" class="secondary">Copy results</button>
         ${state.isHost ? `<button id="finalNewGameBtn" class="success">Play solo again</button>` : ""}
+        <button id="finalHomeBtn" class="secondary">🏠 Home</button>
       </div>
     </div>
   ` : `
@@ -2931,6 +2933,7 @@ function renderFinalMapOverlay() {
         <button id="finalShareBtn" class="secondary">🔗 Share</button>
         <button id="finalCopyResultsBtn" class="secondary">Copy results</button>
         ${state.isHost ? `<button id="finalNewGameBtn" class="success">Play again with same group</button>` : ""}
+        <button id="finalHomeBtn" class="secondary">🏠 Home</button>
       </div>
     </div>
   `;
@@ -4213,6 +4216,7 @@ document.addEventListener("click", (event) => {
     setTimeout(() => playDailyChallenge(), 200);
   }
   if (target.id === "finalNewGameBtn") newGameSamePlayers();
+  if (target.id === "finalHomeBtn") leaveGame(true);
   if (target.id === "finalHostOwnBtn") hostOwnGroup();
   if (target.id === "playDailyBtn") playDailyChallenge();
 });
