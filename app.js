@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v114-mobile-tidy";
+const PTP_APP_VERSION = "v115-overlay-polish";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -3214,19 +3214,34 @@ function renderMapMarkers() {
       return [wrappedGuess.lat, wrappedGuess.lng];
     })];
 
+    // On mobile the answer panel and spotlight cards cover parts of
+    // the map, so a naive fitBounds would centre the answer pin under
+    // those overlays. Pass paddingTopLeft / paddingBottomRight so the
+    // visible map region gets the action instead.
+    const isMobileViewport = window.matchMedia("(max-width: 860px)").matches;
+    const topInset = isMobileViewport ? 110 : 24;
+    const bottomInset = isMobileViewport ? 200 : 24;
+    const fitOptions = {
+      animate: true,
+      duration: 0.55,
+      maxZoom: 5,
+      paddingTopLeft: [16, topInset],
+      paddingBottomRight: [16, bottomInset]
+    };
+
     if (isPolygonType(question.type) && state.countryShape) {
       try {
         const shapeBounds = state.countryShape.getBounds();
         const combined = points.length > 1 ? shapeBounds.extend(L.latLngBounds(points)) : shapeBounds;
-        state.map.fitBounds(combined.pad(0.18), { animate: true, duration: 0.55, maxZoom: 5 });
+        state.map.fitBounds(combined, fitOptions);
       } catch (error) {
         if (points.length > 1) {
-          state.map.fitBounds(L.latLngBounds(points).pad(0.32), { animate: true, duration: 0.55, maxZoom: 5 });
+          state.map.fitBounds(L.latLngBounds(points), fitOptions);
         }
       }
     } else if (points.length > 1) {
       const bounds = L.latLngBounds(points);
-      state.map.fitBounds(bounds.pad(0.32), { animate: true, duration: 0.55, maxZoom: 5 });
+      state.map.fitBounds(bounds, fitOptions);
     }
   }
 }
