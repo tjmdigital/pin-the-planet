@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v122-timer-padding";
+const PTP_APP_VERSION = "v123-dblclick-guard";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1509,9 +1509,14 @@ function initMap() {
 
   L.control.zoom({ position: "bottomleft" }).addTo(state.map);
 
+  // Always off, on every viewport: the second click of a double-click
+  // would otherwise both zoom AND drop a pin, committing the player to
+  // a guess they didn't mean. Players still have the +/- buttons and
+  // scroll-wheel / pinch for zoom.
+  state.map.doubleClickZoom.disable();
+
   if (isMobileViewport) {
     state.map.scrollWheelZoom.disable();
-    state.map.doubleClickZoom.disable();
     state.map.boxZoom.disable();
     state.map.keyboard.disable();
   }
@@ -1520,6 +1525,11 @@ function initMap() {
 
   state.map.on("click", async (event) => {
     if (!state.game) return;
+    // Belt-and-braces guard - Leaflet's zoom control stops propagation
+    // by default, but a stray click on the control's padding or any
+    // other Leaflet UI shouldn't ever count as a pin placement.
+    const target = event.originalEvent?.target;
+    if (target && target.closest && target.closest(".leaflet-control")) return;
     const solo = isSoloGame();
     if (!state.game.started || state.game.revealed) {
       toast(solo ? "Start the round before placing a pin" : "Wait for the host to start the round");
