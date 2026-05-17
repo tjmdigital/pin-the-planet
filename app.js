@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v130-toast-z-share-text";
+const PTP_APP_VERSION = "v131-county-zoom-and-noun";
 window.PTP_VERSION = PTP_APP_VERSION;
 // Render the version pill once the DOM is ready so QA can confirm
 // which build is loaded without opening DevTools.
@@ -691,13 +691,23 @@ function verdictForRow(row, question) {
   return verdictForDistance(row.distance);
 }
 
+function substituteCountryNoun(text, question) {
+  const noun = polygonNoun(question);
+  if (!noun || noun === "country") return text;
+  return text
+    .replace(/the country/g, `the ${noun}`)
+    .replace(/Wrong country/g, `Wrong ${noun}`)
+    .replace(/a country/g, `a ${noun}`)
+    .replace(/country pinning/g, `${noun} pinning`);
+}
+
 function bestSpotlightForRow(row, question) {
-  if (isPolygonType(question?.type)) return countryBestSpotlight(row);
+  if (isPolygonType(question?.type)) return substituteCountryNoun(countryBestSpotlight(row), question);
   return bestSpotlightCopy(row.distance);
 }
 
 function worstSpotlightForRow(row, question) {
-  if (isPolygonType(question?.type)) return countryWorstSpotlight(row);
+  if (isPolygonType(question?.type)) return substituteCountryNoun(countryWorstSpotlight(row), question);
   return worstSpotlightCopy(row.distance);
 }
 
@@ -3396,17 +3406,24 @@ function renderMapMarkers() {
       return [wrappedGuess.lat, wrappedGuess.lng];
     })];
 
-    // On mobile the answer panel and spotlight cards cover parts of
-    // the map, so a naive fitBounds would centre the answer pin under
-    // those overlays. Pass paddingTopLeft / paddingBottomRight so the
-    // visible map region gets the action instead.
+    // On mobile the answer panel and spotlight cards cover a big chunk
+    // of the map, so pass paddingTopLeft / paddingBottomRight that
+    // actually reflect those panels' heights. Top reservation is
+    // bigger in revealed state because the spotlight cards stack
+    // directly under the answer name.
     const isMobileViewport = window.matchMedia("(max-width: 860px)").matches;
-    const topInset = isMobileViewport ? 110 : 24;
-    const bottomInset = isMobileViewport ? 200 : 24;
+    const topInset = isMobileViewport ? 360 : 24;
+    const bottomInset = isMobileViewport ? 120 : 24;
+    // Sub-national packs need a tighter zoom floor or the answer
+    // (e.g. Cumbria) ends up rendered at continent scale.
+    const qType = question?.type || state.game?.questionType;
+    const fitMaxZoom = (qType === "county-uk" || qType === "state-us") ? 8
+      : qType === "ground-uk" ? 7
+      : 5;
     const fitOptions = {
       animate: true,
       duration: 0.55,
-      maxZoom: 5,
+      maxZoom: fitMaxZoom,
       paddingTopLeft: [16, topInset],
       paddingBottomRight: [16, bottomInset]
     };
