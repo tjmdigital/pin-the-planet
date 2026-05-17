@@ -340,7 +340,9 @@ label {
   bottom: 24px;
   left: 50%;
   transform: translate(-50%, 8px);
-  z-index: 2000;
+  /* Sits above the final-results overlay (z-index 3000) so 'Copied'
+     and 'Shared' confirmations always show, even when the panel is up. */
+  z-index: 5000;
   background: #f6f7fb;
   color: #07101d;
   border-radius: 999px;

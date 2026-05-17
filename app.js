@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v129-quiet-leave";
+const PTP_APP_VERSION = "v130-toast-z-share-text";
 window.PTP_VERSION = PTP_APP_VERSION;
 // Render the version pill once the DOM is ready so QA can confirm
 // which build is loaded without opening DevTools.
@@ -4041,7 +4041,12 @@ function buildResultsText() {
       bestSuffix = `${Math.round(best.distance).toLocaleString()} km from ${placeName}`;
     }
     lines.push("");
-    lines.push(`🎯 Final round best: ${best.player.name} - ${bestSuffix}`);
+    // 'Final round best: <name>' only reads right with multiple
+    // players. In solo / daily there's no field to be best in, so
+    // just say 'Final round: <distance/inside>'.
+    lines.push(isMultiplayer
+      ? `🎯 Final round best: ${best.player.name} - ${bestSuffix}`
+      : `🎯 Final round: ${bestSuffix}`);
   }
 
   lines.push("");
