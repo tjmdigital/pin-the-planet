@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v128-leave-borders-version";
+const PTP_APP_VERSION = "v129-quiet-leave";
 window.PTP_VERSION = PTP_APP_VERSION;
 // Render the version pill once the DOM is ready so QA can confirm
 // which build is loaded without opening DevTools.
@@ -2046,8 +2046,14 @@ function subscribeToGame() {
   const gameRef = ref(db, `games/${state.gameCode}`);
   onValue(gameRef, (snap) => {
     if (!snap.exists()) {
-      toast("Room was removed");
-      leaveGame(false);
+      // Don't shout 'Room was removed' if WE're the ones removing it -
+      // the user clicked Leave themselves and is mid-flight to home.
+      // Reserve the toast for the case where another host wiped the
+      // room out from under remaining players.
+      if (!state.leaveInProgress) {
+        toast("Room was removed");
+        leaveGame(false);
+      }
       return;
     }
     state.game = snap.val();
