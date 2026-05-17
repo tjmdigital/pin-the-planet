@@ -3325,17 +3325,11 @@ body.in-game .target {
   }
 
   /* When the host bar is showing (host / solo) it already carries the
-     round number and countdown, so the same info in the map overlay
-     just duplicates and visually competes with it. Hide both. */
-  body.has-mobile-host-bar .map-overlay #countdownDisplay,
+     round number so hide the duplicate from the overlay. The countdown
+     pill stays in the overlay because it's much more glanceable than
+     the small 'Xs left' text inside the bar. */
   body.has-mobile-host-bar .map-overlay #roundState {
     display: none !important;
-  }
-  body.has-mobile-host-bar .map-overlay:has(.timer:not(.hidden)) {
-    /* The :has() rule above adds left padding to make room for the
-       timer pill - drop it when the timer is hidden here. */
-    padding-left: 12px;
-    padding-right: 12px;
   }
 }
 
