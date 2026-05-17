@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v126-join-validation";
+const PTP_APP_VERSION = "v127-leave-race-fix";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -2044,8 +2044,12 @@ function hasRoundTimerEnded() {
 function eligiblePlayersArray() {
   const players = playersArray();
   const roundIds = state.game?.roundPlayerIds;
-  if (!state.game?.started || !roundIds) return players;
-  return players.filter(player => Boolean(roundIds[player.id]));
+  // Drop anyone who's gone offline mid-round - their record may take a
+  // moment to clear from Firebase but the host shouldn't be stuck
+  // waiting for a player who's already closed the tab.
+  const online = players.filter(player => player.online !== false);
+  if (!state.game?.started || !roundIds) return online;
+  return online.filter(player => Boolean(roundIds[player.id]));
 }
 
 function allPlayersHaveGuessed() {
@@ -3472,7 +3476,7 @@ function confirmAndLeave() {
   leaveGame(true);
 }
 
-function leaveGame(removeHostRoom = true) {
+async function leaveGame(removeHostRoom = true) {
   hideFinalOverlay();
   document.body.classList.remove("has-mobile-host-bar");
   const code = state.gameCode;
@@ -3481,8 +3485,23 @@ function leaveGame(removeHostRoom = true) {
   localStorage.removeItem("worldPinQuizSession");
 
   if (db && code && playerId) {
-    if (isHost && removeHostRoom) remove(ref(db, `games/${code}`));
-    else remove(ref(db, `games/${code}/players/${playerId}`));
+    // Flip online:false first so the host sees us drop out immediately,
+    // then actually remove the record. Awaiting the writes (rather than
+    // fire-and-forget) means Firebase has committed before the tab
+    // navigates - otherwise the host's players list keeps stale entries
+    // and 'all guessed' / time-up reveal never trips.
+    const flush = (async () => {
+      try {
+        if (!isHost) {
+          await update(ref(db, `games/${code}/players/${playerId}`), { online: false });
+        }
+        if (isHost && removeHostRoom) await remove(ref(db, `games/${code}`));
+        else await remove(ref(db, `games/${code}/players/${playerId}`));
+      } catch (_) { /* swallow */ }
+    })();
+    // Cap the wait so a Firebase hang can't strand the leaving player.
+    const timeout = new Promise(resolve => setTimeout(resolve, 1500));
+    await Promise.race([flush, timeout]);
   }
 
   window.location.href = window.location.pathname;
