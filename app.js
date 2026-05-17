@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v116-leave-in-bar";
+const PTP_APP_VERSION = "v117-no-dup-overlay";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1493,7 +1493,11 @@ function initMap() {
     zoomControl: false,
     bounceAtZoomLimits: false,
     inertia: !isMobileViewport,
-    tap: false
+    tap: false,
+    // Stop the map drifting past the world's edge into an empty strip.
+    // The bounds are slightly inside Mercator's limits to keep things sane.
+    maxBounds: [[-85, -180], [85, 180]],
+    maxBoundsViscosity: 1.0
   }).setView(initialView.center, initialView.zoom);
 
   L.control.zoom({ position: "bottomleft" }).addTo(state.map);
