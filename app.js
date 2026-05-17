@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v124-daily-labels-confirm-countdown";
+const PTP_APP_VERSION = "v125-daily-labels-finish";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -2175,7 +2175,7 @@ function renderGame() {
     $("roundState").textContent = isSolo ? "Ready when you are" : "Waiting for host to start";
     $("targetName").textContent = "Get ready";
     renderClubBadge(null);
-    $("playerHint").textContent = isSolo ? "Start your solo run when you're ready." : (state.isHost ? "Start the first round when everyone has joined." : "The quiz will begin shortly.");
+    $("playerHint").textContent = isSolo ? (isDailyGame() ? "Start today's daily challenge when you're ready." : "Start your solo run when you're ready.") : (state.isHost ? "Start the first round when everyone has joined." : "The quiz will begin shortly.");
   } else if (state.game.revealed) {
     $("roundState").textContent = `${isFinalRound ? "Final answer revealed" : isPracticeRound() ? "Practice answer revealed" : `Answer revealed - ${displayLabel}`}`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
@@ -2349,7 +2349,9 @@ function renderMobileHostBar() {
   bar.classList.remove("hidden");
   document.body.classList.add("has-mobile-host-bar");
 
-  $("mobileHostRound").textContent = state.game.singlePlayer ? `Solo · ${visibleRoundInfo()}` : visibleRoundInfo();
+  $("mobileHostRound").textContent = isDailyGame()
+    ? `Daily · ${visibleRoundInfo()}`
+    : state.game.singlePlayer ? `Solo · ${visibleRoundInfo()}` : visibleRoundInfo();
   $("mobileHostStatus").textContent = isFinalComplete
     ? "Game complete"
     : !hasStarted
