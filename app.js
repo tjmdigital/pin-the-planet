@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v118-final-clean";
+const PTP_APP_VERSION = "v119-pan-and-gap";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1430,18 +1430,27 @@ function setBaseMapLayer(mode = "hardcore") {
     state.baseLayer = null;
   }
 
+  // Pre-fetch more tiles around the viewport and fire fetches while
+  // the user is still dragging (not on drag-end) so blank tiles
+  // resolve before they're scrolled into view.
+  const tileTuning = {
+    keepBuffer: 8,
+    updateWhenIdle: false,
+    updateWhenZooming: false,
+    updateInterval: 80
+  };
   const layers = {
     hardcore: {
       url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
-      options: { maxZoom: 13, detectRetina: true, keepBuffer: 4, className: "clean-map-tiles", attribution: "Tiles &copy; Esri" }
+      options: { maxZoom: 13, detectRetina: true, ...tileTuning, className: "clean-map-tiles", attribution: "Tiles &copy; Esri" }
     },
     outlines: {
       url: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-      options: { subdomains: "abcd", maxZoom: 18, detectRetina: true, keepBuffer: 4, attribution: "&copy; OpenStreetMap contributors &copy; CARTO" }
+      options: { subdomains: "abcd", maxZoom: 18, detectRetina: true, ...tileTuning, attribution: "&copy; OpenStreetMap contributors &copy; CARTO" }
     },
     labels: {
       url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      options: { maxZoom: 18, detectRetina: true, keepBuffer: 4, attribution: "&copy; OpenStreetMap contributors" }
+      options: { maxZoom: 18, detectRetina: true, ...tileTuning, attribution: "&copy; OpenStreetMap contributors" }
     }
   };
 
@@ -1487,17 +1496,15 @@ function initMap() {
   // don't briefly flash a world view before snapping in.
   const initialView = defaultMapViewForPack(state.game?.questionType, currentQuestion());
   state.map = L.map("map", {
-    worldCopyJump: false,
+    // Wrap longitude so dragging east of Tokyo seamlessly comes back
+    // around through the Americas instead of hitting an empty strip.
+    worldCopyJump: true,
     minZoom: 2,
     maxZoom: 9,
     zoomControl: false,
     bounceAtZoomLimits: false,
     inertia: !isMobileViewport,
-    tap: false,
-    // Stop the map drifting past the world's edge into an empty strip.
-    // The bounds are slightly inside Mercator's limits to keep things sane.
-    maxBounds: [[-85, -180], [85, 180]],
-    maxBoundsViscosity: 1.0
+    tap: false
   }).setView(initialView.center, initialView.zoom);
 
   L.control.zoom({ position: "bottomleft" }).addTo(state.map);

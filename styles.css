@@ -1787,7 +1787,10 @@ aside.card.stack {
   }
 
   body.has-mobile-host-bar {
-    padding-top: calc(86px + env(safe-area-inset-top));
+    /* The bar carries a two-row meta + actions grid which can run
+       to ~110px tall on small phones; reserve enough room so the
+       map card below it never has to peek through. */
+    padding-top: calc(120px + env(safe-area-inset-top));
     padding-bottom: 0;
   }
 
