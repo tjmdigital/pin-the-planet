@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v125-daily-labels-finish";
+const PTP_APP_VERSION = "v126-join-validation";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1784,6 +1784,16 @@ async function createGame(isSinglePlayer = false) {
   enterGame(code, playerId, hostName, true);
 }
 
+function setJoinFieldError(inputId, message) {
+  const errorEl = $(`${inputId}Error`);
+  const input = $(inputId);
+  if (errorEl) {
+    errorEl.textContent = message;
+    errorEl.classList.toggle("hidden", !message);
+  }
+  if (input) input.classList.toggle("input-invalid", Boolean(message));
+}
+
 async function joinGame() {
   if (!isFirebaseConfigured) {
     toast("Paste Firebase config first");
@@ -1792,14 +1802,19 @@ async function joinGame() {
 
   const code = $("joinCode").value.trim().toUpperCase();
   const name = $("playerName").value.trim();
+
+  // Inline per-field errors so a missed input never silently fails.
+  setJoinFieldError("playerName", name ? "" : "Enter your name to join.");
+  setJoinFieldError("joinCode", code ? "" : "Enter the 4–6 character room code.");
   if (!code || !name) {
-    toast("Add your name and room code");
+    (!name ? $("playerName") : $("joinCode"))?.focus();
     return;
   }
 
   const snap = await get(ref(db, `games/${code}`));
   if (!snap.exists()) {
-    toast("Room not found");
+    setJoinFieldError("joinCode", "Room not found - double-check the code.");
+    $("joinCode")?.focus();
     return;
   }
 
@@ -4286,6 +4301,11 @@ warmCityPool(questionCountForOptions(getSetupOptions()), getSetupOptions()).catc
 renderDailyCard();
 $("roundDuration").addEventListener("change", () => {});
 $("joinGameBtn").addEventListener("click", joinGame);
+// Clear the inline error as soon as the player starts correcting the input.
+$("playerName")?.addEventListener("input", () => setJoinFieldError("playerName", ""));
+$("joinCode")?.addEventListener("input", () => setJoinFieldError("joinCode", ""));
+$("playerName")?.addEventListener("keydown", (event) => { if (event.key === "Enter") joinGame(); });
+$("joinCode")?.addEventListener("keydown", (event) => { if (event.key === "Enter") joinGame(); });
 $("showHostSetupBtn")?.addEventListener("click", () => {
   document.body.classList.remove("join-link-mode");
   $("hostOwnGroupCard")?.classList.add("hidden");

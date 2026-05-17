@@ -256,11 +256,13 @@
           <div class="field">
             <label for="playerName">Your name</label>
             <input id="playerName" placeholder="eg Tom" autocomplete="name" />
+            <span id="playerNameError" class="field-error hidden" role="alert"></span>
           </div>
 
           <div class="field">
             <label for="joinCode">Room code</label>
             <input id="joinCode" placeholder="eg K7Q9" maxlength="6" style="text-transform: uppercase" />
+            <span id="joinCodeError" class="field-error hidden" role="alert"></span>
           </div>
 
           <button id="joinGameBtn" class="hero-primary">Join room</button>

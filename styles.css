@@ -3903,6 +3903,23 @@ body.join-link-mode .site-footer { display: none; }
   opacity: 0.85;
 }
 
+/* Inline join-form errors so an empty / bad input never silently
+   fails. Pairs with .input-invalid which adds a red ring to the
+   offending field. */
+.field-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ff9a9a;
+  line-height: 1.3;
+}
+.field-error.hidden { display: none; }
+input.input-invalid {
+  border-color: rgba(255, 154, 154, 0.6) !important;
+  box-shadow: 0 0 0 1px rgba(255, 154, 154, 0.4) !important;
+}
+
 /* Hero-level city difficulty pills (only visible when World cities pack
    is selected). Sits between the pack grid and the Create / Play
    buttons. */
