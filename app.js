@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v120-restore-timer";
+const PTP_APP_VERSION = "v121-mode-aware-replay";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -2295,6 +2295,18 @@ function renderHostButtons() {
   }
 }
 
+// Dispatch the mobile host bar's replay button to the right action
+// for the current mode. Daily replays today's pack, solo starts a
+// fresh solo run, multiplayer keeps the same group.
+function mobileNewGameAction() {
+  if (isDailyGame()) {
+    leaveGame(true);
+    setTimeout(() => playDailyChallenge(), 200);
+    return;
+  }
+  newGameSamePlayers();
+}
+
 function renderMobileHostBar() {
   const bar = $("mobileHostBar");
   if (!bar) return;
@@ -2349,6 +2361,21 @@ function renderMobileHostBar() {
 
   revealBtn.textContent = canReveal ? "Reveal answers" : "Waiting";
   nextBtn.textContent = "Next round";
+
+  // The replay action means something different in each mode, so
+  // mirror the labels (and intent) used by the final overlay panel:
+  // daily = 'Try again' (replay today's pack), solo = 'Play solo
+  // again', multiplayer = 'Play again with same group'.
+  if (newGameBtn) {
+    const isDaily = isDailyGame();
+    const isSolo = isSoloGame();
+    newGameBtn.textContent = isDaily
+      ? "Try again"
+      : isSolo
+        ? "Play solo again"
+        : "Play again with same group";
+    newGameBtn.dataset.mode = isDaily ? "daily" : isSolo ? "solo" : "multi";
+  }
 }
 
 function renderPlayers() {
@@ -4191,7 +4218,7 @@ $("mobileStartBtn").addEventListener("click", startRound);
 $("mobileRevealBtn").addEventListener("click", revealRound);
 $("mobileNextBtn").addEventListener("click", nextRound);
 $("mobileCopyBtn").addEventListener("click", copyJoinLink);
-$("mobileNewGameBtn").addEventListener("click", newGameSamePlayers);
+$("mobileNewGameBtn").addEventListener("click", mobileNewGameAction);
 $("mobileCopyResultsBtn").addEventListener("click", copyResults);
 $("mobileHostLeaveBtn")?.addEventListener("click", () => leaveGame(true));
 $("newGameSamePlayersBtn").addEventListener("click", newGameSamePlayers);
@@ -4203,7 +4230,7 @@ $("hostOwnGroupFinalBtn")?.addEventListener("click", hostOwnGroup);
 $("newGameSamePlayersBtn")?.addEventListener("click", newGameSamePlayers);
 $("copyResultsBtn")?.addEventListener("click", copyResults);
 $("mobileHostOwnBtn")?.addEventListener("click", hostOwnGroup);
-$("mobileNewGameBtn")?.addEventListener("click", newGameSamePlayers);
+$("mobileNewGameBtn")?.addEventListener("click", mobileNewGameAction);
 $("mobileCopyResultsBtn")?.addEventListener("click", copyResults);
 
 $("joinCode").addEventListener("input", (event) => {
