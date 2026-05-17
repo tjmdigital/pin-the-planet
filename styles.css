@@ -3190,8 +3190,12 @@ body.final-overlay-active #mobileLeaveBtn {
 
 /* The personal-result-card lives in the map area during gameplay.
    On the final screen it overlaps the action buttons in the panel
-   below, so hide it once the final overlay is up. */
-body.final-overlay-active .personal-result-card {
+   below, so hide it once the final overlay is up. Same goes for the
+   in-map question overlay (last round's name) and the BEST GUESS /
+   ROAST spotlight cards. None of them belong on the final screen. */
+body.final-overlay-active .personal-result-card,
+body.final-overlay-active .map-overlay,
+body.final-overlay-active .round-spotlight-overlay {
   display: none !important;
 }
 
