@@ -21,8 +21,21 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v127-leave-race-fix";
+const PTP_APP_VERSION = "v128-leave-borders-version";
 window.PTP_VERSION = PTP_APP_VERSION;
+// Render the version pill once the DOM is ready so QA can confirm
+// which build is loaded without opening DevTools.
+(() => {
+  const paint = () => {
+    const pill = document.getElementById("versionPill");
+    if (pill) pill.textContent = PTP_APP_VERSION;
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", paint, { once: true });
+  } else {
+    paint();
+  }
+})();
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
 let app = null;
@@ -61,8 +74,36 @@ const state = {
   prefetchPromise: null,
   prefetchKey: null,
   baseLayer: null,
-  baseMapMode: null
+  baseMapMode: null,
+  bordersOverlay: null,
+  bordersOverlayKey: null,
+  leaveInProgress: false
 };
+
+// Cache for pack-level GeoJSON used to draw the 'Include borders'
+// overlay on sub-national packs (UK counties, US states). The country
+// pack continues to use the CARTO tile-based outlines because country
+// polygons would need wrap-around handling that GeoJSON layers don't
+// give us out of the box.
+const PACK_GEOJSON_CACHE = {};
+const PACK_GEOJSON_PROMISES = {};
+const PACK_GEOJSON_PATHS = {
+  "county-uk": "/data/counties-uk.geojson",
+  "state-us": "/data/states-us.geojson"
+};
+
+function loadPackGeoJSON(packType) {
+  const path = PACK_GEOJSON_PATHS[packType];
+  if (!path) return Promise.resolve(null);
+  if (PACK_GEOJSON_CACHE[packType]) return Promise.resolve(PACK_GEOJSON_CACHE[packType]);
+  if (PACK_GEOJSON_PROMISES[packType]) return PACK_GEOJSON_PROMISES[packType];
+  PACK_GEOJSON_PROMISES[packType] = fetch(path)
+    .then(r => r.ok ? r.json() : null)
+    .then(json => { if (json) PACK_GEOJSON_CACHE[packType] = json; return json; })
+    .catch(() => null)
+    .finally(() => { delete PACK_GEOJSON_PROMISES[packType]; });
+  return PACK_GEOJSON_PROMISES[packType];
+}
 
 function getTrafficSource() {
   const params = new URLSearchParams(window.location.search);
@@ -1421,10 +1462,63 @@ function scheduleOverlayReflowAfterFonts() {
   }
 }
 
+function isSubNationalPolygonPack() {
+  const t = state.game?.questionType || $("questionType")?.value || "city";
+  return t === "county-uk" || t === "state-us";
+}
+
+// When 'Include borders' is on for a sub-national pack, draw the pack's
+// own polygon outlines on top of the hardcore basemap instead of
+// switching to the very-pale CARTO tiles. Country mode still uses the
+// CARTO outlines because country polygons need world-copy wrap which
+// GeoJSON layers don't provide.
+function applyBordersOverlay() {
+  if (!state.map) return;
+  const packType = state.game?.questionType || $("questionType")?.value || "city";
+  const mapMode = state.game?.mapMode || $("mapMode")?.value || "hardcore";
+  const wantOverlay = mapMode === "outlines" && isSubNationalPolygonPack();
+  const desiredKey = wantOverlay ? packType : null;
+
+  if (state.bordersOverlay && state.bordersOverlayKey !== desiredKey) {
+    try { state.map.removeLayer(state.bordersOverlay); } catch (_) {}
+    state.bordersOverlay = null;
+  }
+  state.bordersOverlayKey = desiredKey;
+  if (!wantOverlay) return;
+  if (state.bordersOverlay) return;
+
+  loadPackGeoJSON(packType).then((geo) => {
+    if (!geo || !state.map || state.bordersOverlayKey !== packType) return;
+    try {
+      const layer = L.geoJSON(geo, {
+        style: {
+          color: "#1a2b49",
+          weight: 1.4,
+          opacity: 0.7,
+          fill: false,
+          interactive: false
+        }
+      });
+      layer.addTo(state.map);
+      if (layer.bringToBack) layer.bringToBack();
+      state.bordersOverlay = layer;
+    } catch (_) { /* overlay is decorative; never crash gameplay */ }
+  });
+}
+
 function setBaseMapLayer(mode = "hardcore") {
   if (!state.map) return;
-  const safeMode = mode || "hardcore";
-  if (state.baseLayer && state.baseMapMode === safeMode) return;
+  let safeMode = mode || "hardcore";
+  // Sub-national polygon packs (UK counties, US states) render their
+  // own border overlay; the basemap stays as hardcore so the relief
+  // shading shows through. CARTO tiles are reserved for country mode.
+  if (safeMode === "outlines" && isSubNationalPolygonPack()) {
+    safeMode = "hardcore";
+  }
+  if (state.baseLayer && state.baseMapMode === safeMode) {
+    applyBordersOverlay();
+    return;
+  }
 
   if (state.baseLayer) {
     state.map.removeLayer(state.baseLayer);
@@ -1458,6 +1552,7 @@ function setBaseMapLayer(mode = "hardcore") {
   const config = layers[safeMode] || layers.hardcore;
   state.baseLayer = L.tileLayer(config.url, config.options).addTo(state.map);
   state.baseMapMode = safeMode;
+  applyBordersOverlay();
 }
 
 // Default map view per question pack. Sub-national packs zoom in on
@@ -3477,19 +3572,26 @@ function confirmAndLeave() {
 }
 
 async function leaveGame(removeHostRoom = true) {
+  // Guard against re-entry. After we delete the host's game node the
+  // onValue listener fires with no-snap and calls leaveGame(false) on
+  // top of our in-flight call. Without this guard, both paths race
+  // to navigate and the page can end up stuck on the old DOM.
+  if (state.leaveInProgress) return;
+  state.leaveInProgress = true;
   hideFinalOverlay();
   document.body.classList.remove("has-mobile-host-bar");
   const code = state.gameCode;
   const playerId = state.playerId;
   const isHost = state.isHost;
   localStorage.removeItem("worldPinQuizSession");
+  // Clear in-memory game state so any straggling renders before the
+  // page reloads can't paint a stale lobby on top of the new home.
+  state.game = null;
+  state.gameCode = null;
+  state.playerId = null;
+  state.isHost = false;
 
   if (db && code && playerId) {
-    // Flip online:false first so the host sees us drop out immediately,
-    // then actually remove the record. Awaiting the writes (rather than
-    // fire-and-forget) means Firebase has committed before the tab
-    // navigates - otherwise the host's players list keeps stale entries
-    // and 'all guessed' / time-up reveal never trips.
     const flush = (async () => {
       try {
         if (!isHost) {
@@ -3499,12 +3601,20 @@ async function leaveGame(removeHostRoom = true) {
         else await remove(ref(db, `games/${code}/players/${playerId}`));
       } catch (_) { /* swallow */ }
     })();
-    // Cap the wait so a Firebase hang can't strand the leaving player.
     const timeout = new Promise(resolve => setTimeout(resolve, 1500));
     await Promise.race([flush, timeout]);
   }
 
-  window.location.href = window.location.pathname;
+  // window.location.href = pathname is a no-op when the URL is already
+  // the pathname (eg solo runs with no room=XYZ query), so the page
+  // never actually reloads. Use a hard reload to guarantee a clean
+  // home screen render.
+  const url = window.location.origin + window.location.pathname;
+  if (window.location.href === url) {
+    window.location.reload();
+  } else {
+    window.location.replace(url);
+  }
 }
 
 

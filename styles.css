@@ -3563,6 +3563,19 @@ body.join-link-mode .daily-card { display: none; }
 .site-footer-credit { margin: 0; text-align: center; font-size: 12px; }
 .site-footer-credit a { color: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.2); }
 .site-footer-credit a:hover { text-decoration-color: rgba(255,255,255,0.6); }
+.version-pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  vertical-align: 1px;
+}
 .site-footer-author {
   font-weight: 700;
   color: #c6d0ff !important;
