@@ -3894,6 +3894,15 @@ body.join-link-mode .site-footer { display: none; }
 }
 .club-badge.hidden { display: none !important; }
 
+/* Countdown to next daily pack - sits under the 'Best today' line so
+   players can see when a fresh pack drops. */
+.daily-next-countdown {
+  display: inline-block;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
 /* Hero-level city difficulty pills (only visible when World cities pack
    is selected). Sits between the pack grid and the Create / Play
    buttons. */

@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v123-dblclick-guard";
+const PTP_APP_VERSION = "v124-daily-labels-confirm-countdown";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1379,7 +1379,8 @@ function ensureMobileLeaveButton() {
   btn.setAttribute("aria-label", "Leave game");
   btn.innerHTML = `<span class="leave-icon" aria-hidden="true">✕</span><span>Leave</span>`;
   btn.addEventListener("click", () => {
-    if (typeof leaveGame === "function") leaveGame(true);
+    if (typeof confirmAndLeave === "function") confirmAndLeave();
+    else if (typeof leaveGame === "function") leaveGame(true);
   });
   document.body.appendChild(btn);
 }
@@ -2133,13 +2134,15 @@ function renderGame() {
   }
 
   const isSolo = isSoloGame();
-  $("roomCodeDisplay").textContent = isSolo ? "SOLO" : state.gameCode;
+  const isDaily = isDailyGame();
+  $("roomCodeDisplay").textContent = isDaily ? "DAILY" : isSolo ? "SOLO" : state.gameCode;
   $("copyLinkBtn").classList.toggle("hidden", isSolo);
   document.body.classList.toggle("single-player-game", isSolo);
+  document.body.classList.toggle("daily-challenge-game", isDaily);
   document.body.classList.toggle("round-revealed-state", Boolean(state.game.revealed));
   document.body.classList.toggle("round-live-state", Boolean(state.game.started && !state.game.revealed));
   if ($("roomCodeLabel")) $("roomCodeLabel").textContent = isSolo ? "Mode" : "Room code";
-  if ($("hostControlsTitle")) $("hostControlsTitle").textContent = isSolo ? "Solo controls" : "Host controls";
+  if ($("hostControlsTitle")) $("hostControlsTitle").textContent = isDaily ? "Daily challenge" : isSolo ? "Solo controls" : "Host controls";
   const question = currentQuestion();
   const displayLabel = visibleRoundInfo();
   const left = secondsLeft();
@@ -2290,18 +2293,26 @@ function renderHostButtons() {
   nextBtn.disabled = !hasStarted || !isRevealed || isLastRound;
 
   const isSolo = isSoloGame();
-  startBtn.textContent = isSolo ? "Start solo run" : "Start game";
+  const isDaily = isDailyGame();
+  startBtn.textContent = isDaily ? "Start daily challenge" : isSolo ? "Start solo run" : "Start game";
   revealBtn.textContent = canReveal ? (isSolo ? "Score round" : "Reveal answer") : (isSolo ? "Place a pin or wait" : "Waiting for guesses");
   nextBtn.textContent = "Next round";
   if (restartBtn) restartBtn.textContent = "Restart round";
-  if (resetBtn) resetBtn.textContent = isSolo ? "Reset solo run" : "Reset room";
-  if (newGameBtn) newGameBtn.textContent = isSolo ? "Play solo again" : "Play again with same group";
+  if (resetBtn) {
+    resetBtn.textContent = isSolo ? "Reset solo run" : "Reset room";
+    // Daily challenge has 'Try again' on the final overlay; resetting
+    // mid-pack is just confusing, so hide the button entirely.
+    resetBtn.classList.toggle("hidden", isDaily);
+  }
+  if (newGameBtn) newGameBtn.textContent = isDaily ? "Try again" : isSolo ? "Play solo again" : "Play again with same group";
   const completeText = $("gameCompleteHost");
   if (completeText) {
     const strong = completeText.querySelector("strong");
     const p = completeText.querySelector("p");
-    if (strong) strong.textContent = isSolo ? "🎯 Solo run complete" : "🏁 Game complete";
-    if (p) p.textContent = isSolo ? "Final score is in. Ready for another go?" : "Final leaderboard is ready. Time for excuses.";
+    if (strong) strong.textContent = isDaily ? "📅 Daily challenge complete" : isSolo ? "🎯 Solo run complete" : "🏁 Game complete";
+    if (p) p.textContent = isDaily
+      ? "Today's pack is done. Same questions for everyone today."
+      : isSolo ? "Final score is in. Ready for another go?" : "Final leaderboard is ready. Time for excuses.";
   }
 }
 
@@ -3025,8 +3036,9 @@ function renderLeaderboard() {
   panel.classList.toggle("solo", isSoloGame());
   panel.classList.toggle("solo", isSolo);
 
+  const isDaily = isDailyGame();
   const title = isSolo
-    ? (isFinal ? "🎯 Solo run complete" : state.game.revealed ? `📈 Your score after ${roundLabel()}` : "📈 Your score so far")
+    ? (isFinal ? (isDaily ? "📅 Daily challenge complete" : "🎯 Solo run complete") : state.game.revealed ? `📈 Your score after ${roundLabel()}` : "📈 Your score so far")
     : isPracticeRound()
       ? "🧪 Practice round"
       : isFinal
@@ -3384,6 +3396,14 @@ async function nextRound() {
 
 async function resetGame() {
   if (!state.isHost || !state.game) return;
+  // Confirm before throwing away an in-progress game. Skip the prompt
+  // pre-start since there's no progress to lose.
+  if (state.game.started) {
+    const message = isSoloGame()
+      ? "Reset your solo run? All progress will be lost."
+      : "Reset the room? Every player's score will be cleared.";
+    if (!window.confirm(message)) return;
+  }
   const playerUpdates = {};
   Object.keys(state.game.players || {}).forEach(playerId => {
     playerUpdates[`players/${playerId}/total`] = 0;
@@ -3418,6 +3438,21 @@ function clearOwnGuessMarker() {
     state.guessMarker.remove();
     state.guessMarker = null;
   }
+}
+
+// User-triggered leave from the UI. Ask before quitting an in-flight
+// game so an accidental tap doesn't tank everyone's progress.
+function confirmAndLeave() {
+  const game = state.game;
+  const showConfirm = Boolean(game?.started)
+    && !(typeof isFinalRevealState === "function" && isFinalRevealState());
+  if (showConfirm) {
+    const message = isSoloGame()
+      ? (isDailyGame() ? "Leave the daily challenge? Your progress today will be lost." : "Leave your solo run? Your progress will be lost.")
+      : (state.isHost ? "Leave the game? This ends the room for everyone." : "Leave the game? You'll drop out of this round.");
+    if (!window.confirm(message)) return;
+  }
+  leaveGame(true);
 }
 
 function leaveGame(removeHostRoom = true) {
@@ -3923,6 +3958,20 @@ function setupSelectLabel(id) {
   return el.options?.[el.selectedIndex]?.textContent?.trim() || el.value || "";
 }
 
+function timeUntilNextDailyPack() {
+  const now = new Date();
+  const nextUtcMidnight = new Date(Date.UTC(
+    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0
+  ));
+  const ms = Math.max(0, nextUtcMidnight.getTime() - now.getTime());
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
+
 function renderDailyCard() {
   const card = $("dailyChallengeCard");
   if (!card) return;
@@ -3940,11 +3989,31 @@ function renderDailyCard() {
   if (subtitleEl) subtitleEl.textContent = "4 cities, 4 countries · same questions for every player today.";
 
   if (playedToday) {
-    if (statusEl) statusEl.textContent = `Best today: ${Number(playedToday.bestScore || 0).toLocaleString()} · ${playedToday.attempts} ${playedToday.attempts === 1 ? "attempt" : "attempts"}`;
+    const best = `Best today: ${Number(playedToday.bestScore || 0).toLocaleString()} · ${playedToday.attempts} ${playedToday.attempts === 1 ? "attempt" : "attempts"}`;
+    if (statusEl) statusEl.innerHTML = `${escapeHtml(best)}<br><span class="daily-next-countdown">Next pack in ${timeUntilNextDailyPack()}</span>`;
     if (btn) btn.textContent = "Replay today's challenge";
   } else {
     if (statusEl) statusEl.textContent = "Not played yet today.";
     if (btn) btn.textContent = "Play today's challenge";
+  }
+
+  // Tick the countdown every second only while the card is on screen
+  // and the player has played today. The interval id lives on state so
+  // re-renders don't stack up.
+  if (state.dailyCountdownInterval) {
+    clearInterval(state.dailyCountdownInterval);
+    state.dailyCountdownInterval = null;
+  }
+  if (playedToday) {
+    state.dailyCountdownInterval = setInterval(() => {
+      const tick = document.querySelector("#dailyCardStatus .daily-next-countdown");
+      if (!tick) {
+        clearInterval(state.dailyCountdownInterval);
+        state.dailyCountdownInterval = null;
+        return;
+      }
+      tick.textContent = `Next pack in ${timeUntilNextDailyPack()}`;
+    }, 1000);
   }
 
   if (chip) {
@@ -4230,11 +4299,11 @@ $("mobileNextBtn").addEventListener("click", nextRound);
 $("mobileCopyBtn").addEventListener("click", copyJoinLink);
 $("mobileNewGameBtn").addEventListener("click", mobileNewGameAction);
 $("mobileCopyResultsBtn").addEventListener("click", copyResults);
-$("mobileHostLeaveBtn")?.addEventListener("click", () => leaveGame(true));
+$("mobileHostLeaveBtn")?.addEventListener("click", confirmAndLeave);
 $("newGameSamePlayersBtn").addEventListener("click", newGameSamePlayers);
 $("copyResultsBtn").addEventListener("click", copyResults);
 $("resetGameBtn").addEventListener("click", resetGame);
-$("leaveBtn").addEventListener("click", () => leaveGame(true));
+$("leaveBtn").addEventListener("click", confirmAndLeave);
 $("copyLinkBtn").addEventListener("click", copyJoinLink);
 $("hostOwnGroupFinalBtn")?.addEventListener("click", hostOwnGroup);
 $("newGameSamePlayersBtn")?.addEventListener("click", newGameSamePlayers);
