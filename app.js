@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v115-overlay-polish";
+const PTP_APP_VERSION = "v116-leave-in-bar";
 window.PTP_VERSION = PTP_APP_VERSION;
 
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE" && firebaseConfig.databaseURL;
@@ -1433,15 +1433,15 @@ function setBaseMapLayer(mode = "hardcore") {
   const layers = {
     hardcore: {
       url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
-      options: { maxZoom: 13, detectRetina: true, className: "clean-map-tiles", attribution: "Tiles &copy; Esri" }
+      options: { maxZoom: 13, detectRetina: true, keepBuffer: 4, className: "clean-map-tiles", attribution: "Tiles &copy; Esri" }
     },
     outlines: {
       url: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-      options: { subdomains: "abcd", maxZoom: 18, detectRetina: true, attribution: "&copy; OpenStreetMap contributors &copy; CARTO" }
+      options: { subdomains: "abcd", maxZoom: 18, detectRetina: true, keepBuffer: 4, attribution: "&copy; OpenStreetMap contributors &copy; CARTO" }
     },
     labels: {
       url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      options: { maxZoom: 18, detectRetina: true, attribution: "&copy; OpenStreetMap contributors" }
+      options: { maxZoom: 18, detectRetina: true, keepBuffer: 4, attribution: "&copy; OpenStreetMap contributors" }
     }
   };
 
@@ -4182,6 +4182,7 @@ $("mobileNextBtn").addEventListener("click", nextRound);
 $("mobileCopyBtn").addEventListener("click", copyJoinLink);
 $("mobileNewGameBtn").addEventListener("click", newGameSamePlayers);
 $("mobileCopyResultsBtn").addEventListener("click", copyResults);
+$("mobileHostLeaveBtn")?.addEventListener("click", () => leaveGame(true));
 $("newGameSamePlayersBtn").addEventListener("click", newGameSamePlayers);
 $("copyResultsBtn").addEventListener("click", copyResults);
 $("resetGameBtn").addEventListener("click", resetGame);

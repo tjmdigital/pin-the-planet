@@ -3188,6 +3188,53 @@ body.final-overlay-active #mobileLeaveBtn {
   display: none !important;
 }
 
+/* The personal-result-card lives in the map area during gameplay.
+   On the final screen it overlaps the action buttons in the panel
+   below, so hide it once the final overlay is up. */
+body.final-overlay-active .personal-result-card {
+  display: none !important;
+}
+
+/* When the mobile host bar is showing (host + solo), the floating
+   leave ✕ buttons collide with it. Hide them and let the in-bar
+   leave button (#mobileHostLeaveBtn) take their job. */
+body.has-mobile-host-bar #leaveBtn,
+body.has-mobile-host-bar .mobile-leave-btn {
+  display: none !important;
+}
+
+/* Tile-gap blank flashes during fast pans read as a clunky white box.
+   Tint the map background to the basemap's ocean colour so the gap
+   is far less noticeable while the next tiles fetch. */
+#map {
+  background: #cce4ef;
+}
+
+/* In-bar leave button - small, tucked to the right of the meta row. */
+.mobile-host-leave {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  margin-left: auto;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted, #c7d2dd);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-host-leave:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
 /* The mobile host bar duplicates Play again / Copy results which are
    already inside the final panel, and on small viewports it ends up
    visually overlapping the panel. Hide it while the final overlay is
