@@ -356,13 +356,14 @@ label {
   text-align: center;
 }
 
-/* In-game we lift the toast to the top so it sits with the question
-   prompt and the player's eye instead of competing with the map's
-   bottom edge. */
+/* In-game the top of the screen is taken by the host bar (mobile) or
+   the question overlay, so a top-anchored toast covers the Reveal /
+   Next buttons. Drop it to the lower third of the map, clear of the
+   browser's bottom chrome. */
 body.in-game .toast {
-  bottom: auto;
-  top: 18px;
-  transform: translate(-50%, -8px);
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  top: auto;
+  transform: translate(-50%, 8px);
 }
 body.in-game .toast.show { transform: translate(-50%, 0); }
 

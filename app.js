@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v131-county-zoom-and-noun";
+const PTP_APP_VERSION = "v132-toast-bottom";
 window.PTP_VERSION = PTP_APP_VERSION;
 // Render the version pill once the DOM is ready so QA can confirm
 // which build is loaded without opening DevTools.
