@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v134-toast-cancel-fit-inset";
+const PTP_APP_VERSION = "v135-tighter-hint";
 window.PTP_VERSION = PTP_APP_VERSION;
 // Render the version pill once the DOM is ready so QA can confirm
 // which build is loaded without opening DevTools.
@@ -2380,12 +2380,16 @@ function renderGame() {
         categoryEl.classList.add("hidden");
       }
     }
-    const polygonHint = isPolygonRound ? ` Inside = full points.` : "";
+    // Keep the polygon hint short so 'points.' doesn't orphan onto its
+    // own line on narrow phones - 'Inside = max points' fits 'Drop
+    // your pin. Inside = max points.' on one line at the smaller
+    // overlay widths.
+    const polygonHint = isPolygonRound ? ` Inside = max points.` : "";
     $("playerHint").textContent = isSolo
-      ? `Drop your pin on the map.${polygonHint}`
+      ? `Drop your pin.${polygonHint}`
       : (state.isHost
-        ? `Drop your pin on the map. The round closes once everyone's in.${polygonHint}`
-        : `Drop your pin on the map.${polygonHint}`);
+        ? `Drop your pin. Round closes once everyone's in.${polygonHint}`
+        : `Drop your pin.${polygonHint}`);
     // In solo mode the player can keep repositioning, so the "everyone is
     // in" banner would be misleading. Skip it entirely for solo.
     if (!isSolo && (allIn || roundClosedByAll)) {
