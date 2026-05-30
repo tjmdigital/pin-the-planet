@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v135-tighter-hint";
+const PTP_APP_VERSION = "v136-times-up-copy";
 window.PTP_VERSION = PTP_APP_VERSION;
 // Render the version pill once the DOM is ready so QA can confirm
 // which build is loaded without opening DevTools.
@@ -2346,8 +2346,21 @@ function renderGame() {
     $("roundState").textContent = `${displayLabel} - time's up`;
     $("targetName").textContent = locationDisplayName(question) || "Finished";
     renderClubBadge(question);
-    $("playerHint").textContent = isSolo ? "Time is up. Score the round to see how close you were." : (state.isHost ? "Time is up. Reveal the answer when you're ready." : "Time is up. Waiting for the answer reveal.");
-    $("allGuessesBanner").textContent = isSolo ? "⏰ Time's up - score your round." : (state.isHost ? "⏰ Time's up - reveal time." : "⏰ Time's up - waiting for host.");
+    // 'See how close you were' / 'Score your round' is misleading if
+    // the player never placed a pin - they're getting zero either way.
+    // Branch the copy on whether a guess exists.
+    const ownGuess = guessesForCurrentRound()[state.playerId];
+    const hasOwnGuess = Boolean(ownGuess) || Boolean(state.selectedGuess);
+    $("playerHint").textContent = isSolo
+      ? (hasOwnGuess
+        ? "Time's up. Score the round to see how close you were."
+        : "Time's up. No pin placed - zero points this round. Score to see where it was.")
+      : (state.isHost
+        ? "Time's up. Reveal the answer when you're ready."
+        : "Time's up. Waiting for the answer reveal.");
+    $("allGuessesBanner").textContent = isSolo
+      ? (hasOwnGuess ? "⏰ Time's up - score your round." : "⏰ Time's up - no pin, no points.")
+      : (state.isHost ? "⏰ Time's up - reveal time." : "⏰ Time's up - waiting for host.");
     $("allGuessesBanner").classList.remove("hidden");
     $("allGuessesBanner").classList.add("time-up");
   } else {
