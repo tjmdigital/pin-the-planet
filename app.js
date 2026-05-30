@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v133-russia-fit-toast-gap";
+const PTP_APP_VERSION = "v134-toast-cancel-fit-inset";
 window.PTP_VERSION = PTP_APP_VERSION;
 // Render the version pill once the DOM is ready so QA can confirm
 // which build is loaded without opening DevTools.
@@ -1051,6 +1051,18 @@ function toast(message) {
   el.classList.add("show");
   clearTimeout(state.toastHideTimer);
   state.toastHideTimer = setTimeout(() => el.classList.remove("show"), 2100);
+}
+
+// Cancel any active toast immediately. Used on round reveal so the
+// 'Pin placed - tap elsewhere to move it' bubble doesn't linger over
+// the freshly-revealed answer panel.
+function hideToast() {
+  const el = $("toast");
+  if (!el) return;
+  el.classList.remove("show");
+  clearTimeout(state.toastHideTimer);
+  state.lastToastMessage = null;
+  state.lastToastAt = 0;
 }
 
 function haversineKm(lat1, lon1, lat2, lon2) {
@@ -2269,8 +2281,13 @@ function renderGame() {
   $("copyLinkBtn").classList.toggle("hidden", isSolo);
   document.body.classList.toggle("single-player-game", isSolo);
   document.body.classList.toggle("daily-challenge-game", isDaily);
-  document.body.classList.toggle("round-revealed-state", Boolean(state.game.revealed));
+  const revealedNow = Boolean(state.game.revealed);
+  document.body.classList.toggle("round-revealed-state", revealedNow);
   document.body.classList.toggle("round-live-state", Boolean(state.game.started && !state.game.revealed));
+  // The moment we transition into a revealed state, kill any active
+  // toast (e.g. 'Pin placed - tap elsewhere to move it') so it doesn't
+  // linger on top of the answer panel for the rest of its 2s lifetime.
+  if (revealedNow && state.lastToastMessage) hideToast();
   if ($("roomCodeLabel")) $("roomCodeLabel").textContent = isSolo ? "Mode" : "Room code";
   if ($("hostControlsTitle")) $("hostControlsTitle").textContent = isDaily ? "Daily challenge" : isSolo ? "Solo controls" : "Host controls";
   const question = currentQuestion();
@@ -3408,11 +3425,13 @@ function renderMapMarkers() {
 
     // On mobile the answer panel and spotlight cards cover a big chunk
     // of the map, so pass paddingTopLeft / paddingBottomRight that
-    // actually reflect those panels' heights. Top reservation is
-    // bigger in revealed state because the spotlight cards stack
-    // directly under the answer name.
+    // actually reflect those panels' heights. Single-player games
+    // (solo / daily) don't render the BEST GUESS / ROAST spotlight
+    // cards under the answer name, so the answer panel alone needs
+    // far less top clearance than a multiplayer reveal.
     const isMobileViewport = window.matchMedia("(max-width: 860px)").matches;
-    const topInset = isMobileViewport ? 360 : 24;
+    const hasSpotlightCards = !isSoloGame();
+    const topInset = isMobileViewport ? (hasSpotlightCards ? 360 : 170) : 24;
     const bottomInset = isMobileViewport ? 120 : 24;
     // Sub-national packs need a tighter zoom floor or the answer
     // (e.g. Cumbria) ends up rendered at continent scale.
