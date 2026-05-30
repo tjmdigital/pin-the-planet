@@ -358,10 +358,10 @@ label {
 
 /* In-game the top of the screen is taken by the host bar (mobile) or
    the question overlay, so a top-anchored toast covers the Reveal /
-   Next buttons. Drop it to the lower third of the map, clear of the
-   browser's bottom chrome. */
+   Next buttons. Drop it well inside the map area, matched to the
+   personal-result-card's gap from the map's bottom edge. */
 body.in-game .toast {
-  bottom: calc(96px + env(safe-area-inset-bottom));
+  bottom: calc(180px + env(safe-area-inset-bottom));
   top: auto;
   transform: translate(-50%, 8px);
 }

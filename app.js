@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v132-toast-bottom";
+const PTP_APP_VERSION = "v133-russia-fit-toast-gap";
 window.PTP_VERSION = PTP_APP_VERSION;
 // Render the version pill once the DOM is ready so QA can confirm
 // which build is loaded without opening DevTools.
@@ -3428,19 +3428,34 @@ function renderMapMarkers() {
       paddingBottomRight: [16, bottomInset]
     };
 
+    // Web Mercator can't render past roughly +/-85deg, and Leaflet
+    // shows the basemap's blank background where there's nothing to
+    // project. Countries like Russia and Canada extend high enough to
+    // pull fitBounds past that limit, leaving an ugly grey-blue strip
+    // at the top of the answer map. Clamp the bounds to a safe range.
+    const clampLatBounds = (bounds) => {
+      if (!bounds || !bounds.isValid || !bounds.isValid()) return bounds;
+      const safeNorth = Math.min(bounds.getNorth(), 72);
+      const safeSouth = Math.max(bounds.getSouth(), -60);
+      return L.latLngBounds(
+        [safeSouth, bounds.getWest()],
+        [safeNorth, bounds.getEast()]
+      );
+    };
+
     if (isPolygonType(question.type) && state.countryShape) {
       try {
         const shapeBounds = state.countryShape.getBounds();
         const combined = points.length > 1 ? shapeBounds.extend(L.latLngBounds(points)) : shapeBounds;
-        state.map.fitBounds(combined, fitOptions);
+        state.map.fitBounds(clampLatBounds(combined), fitOptions);
       } catch (error) {
         if (points.length > 1) {
-          state.map.fitBounds(L.latLngBounds(points), fitOptions);
+          state.map.fitBounds(clampLatBounds(L.latLngBounds(points)), fitOptions);
         }
       }
     } else if (points.length > 1) {
       const bounds = L.latLngBounds(points);
-      state.map.fitBounds(bounds, fitOptions);
+      state.map.fitBounds(clampLatBounds(bounds), fitOptions);
     }
   }
 }
