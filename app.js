@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v136-times-up-copy";
+const PTP_APP_VERSION = "v137-hide-lone-spotlight";
 window.PTP_VERSION = PTP_APP_VERSION;
 // Render the version pill once the DOM is ready so QA can confirm
 // which build is loaded without opening DevTools.
@@ -2806,6 +2806,16 @@ function renderRoundSpotlight() {
 
   const rows = roundRows().filter(row => row.hasGuess);
   if (!rows.length) {
+    overlay.classList.add("hidden");
+    overlay.innerHTML = "";
+    return;
+  }
+
+  // 'Best guess' vs 'Roast' framing only makes sense with a field of
+  // players. In a multiplayer room with one host alone, the spotlight
+  // just covers the answer panel for no real payoff - the personal
+  // result card already shows the same info.
+  if (rows.length < 2) {
     overlay.classList.add("hidden");
     overlay.innerHTML = "";
     return;
