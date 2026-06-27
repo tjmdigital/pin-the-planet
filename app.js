@@ -21,7 +21,7 @@ const firebaseConfig = {
   databaseURL: "https://world-pin-quiz-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-const PTP_APP_VERSION = "v137-hide-lone-spotlight";
+const PTP_APP_VERSION = "v138-collapse-revealed-panel";
 window.PTP_VERSION = PTP_APP_VERSION;
 // Render the version pill once the DOM is ready so QA can confirm
 // which build is loaded without opening DevTools.

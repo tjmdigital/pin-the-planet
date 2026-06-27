@@ -3320,16 +3320,18 @@ body.in-game .target {
   font-size: clamp(18px, 3.4vw, 30px);
   letter-spacing: -0.035em;
 }
-/* On mobile, the BEST GUESS / ROAST spotlight cards anchor near the
-   top of the map and were colliding with the answer panel above them.
-   When the round is revealed, hide the prompt subtitle and the round
-   state line so the panel collapses to just the name + club, leaving
-   room for the spotlight cards below it. */
+/* When the round is revealed, hide the prompt subtitle and the round
+   state line on every viewport so the answer panel collapses to just
+   the name + club. Stops the spotlight cards (BEST GUESS / ROAST)
+   from being pushed into / overlapped by the taller revealed panel,
+   especially on the football grounds pack where the club pill adds
+   extra height. */
+body.round-revealed-state .map-overlay #playerHint,
+body.round-revealed-state .map-overlay #roundState {
+  display: none;
+}
+
 @media (max-width: 860px) {
-  body.round-revealed-state .map-overlay #playerHint,
-  body.round-revealed-state .map-overlay #roundState {
-    display: none;
-  }
   body.round-revealed-state .map-overlay {
     padding-top: 8px;
     padding-bottom: 10px;
